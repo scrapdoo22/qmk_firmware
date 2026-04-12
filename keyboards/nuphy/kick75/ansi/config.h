@@ -43,10 +43,10 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 // 0b1110111 AD <-> VCC
 // 0b1110101 AD <-> SCL
 // 0b1110110 AD <-> SDA
-#define DRIVER_ADDR_1              0b1010000
-#define DRIVER_ADDR_2              0b1010011
+#define IS31FL3733_I2C_ADDRESS_1   IS31FL3733_I2C_ADDRESS_GND_GND
+#define IS31FL3733_I2C_ADDRESS_2   IS31FL3733_I2C_ADDRESS_GND_VCC
 
-#define ISSI_TIMEOUT               1
+#define IS31FL3733_I2C_TIMEOUT     1
 
 #define I2C_DRIVER                 I2CD1
 #define I2C1_SCL_PIN               B8
@@ -63,10 +63,8 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #define I2C1_TIMINGR_SCLL          0U
 #define I2C1_DUTY_CYCLE            FAST_DUTY_CYCLE_16_9
 
-#define DRIVER_COUNT               2
-#define DRIVER_1_LED_TOTAL         48
-#define DRIVER_2_LED_TOTAL         (32 + 5)
-#define RGB_MATRIX_LED_COUNT       (DRIVER_1_LED_TOTAL + DRIVER_2_LED_TOTAL)
+// DRIVER_COUNT and LED totals are now auto-derived from
+// IS31FL3733_I2C_ADDRESS_N defines and keyboard.json respectively.
 
 #define RGB_MATRIX_DEFAULT_MODE    RGB_MATRIX_CYCLE_LEFT_RIGHT  
 #define RGB_MATRIX_SLEEP
