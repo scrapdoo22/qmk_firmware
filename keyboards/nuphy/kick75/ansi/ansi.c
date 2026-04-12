@@ -104,22 +104,22 @@ extern void num_led_show(void);
  */
 void m_gpio_init(void)
 {
-    setPinOutput(DC_BOOST_PIN); writePinHigh(DC_BOOST_PIN);
+    gpio_set_pin_output(DC_BOOST_PIN); gpio_write_pin_high(DC_BOOST_PIN);
 
-    setPinOutput(RGB_DRIVER_SDB1); writePinHigh(RGB_DRIVER_SDB1);
-    setPinOutput(RGB_DRIVER_SDB2); writePinHigh(RGB_DRIVER_SDB2);
+    gpio_set_pin_output(RGB_DRIVER_SDB1); gpio_write_pin_high(RGB_DRIVER_SDB1);
+    gpio_set_pin_output(RGB_DRIVER_SDB2); gpio_write_pin_high(RGB_DRIVER_SDB2);
 
-    setPinOutput(NRF_WAKEUP_PIN);
-    writePinHigh(NRF_WAKEUP_PIN);
+    gpio_set_pin_output(NRF_WAKEUP_PIN);
+    gpio_write_pin_high(NRF_WAKEUP_PIN);
 
-    setPinInputHigh(NRF_BOOT_PIN);
+    gpio_set_pin_input_high(NRF_BOOT_PIN);
 
-    setPinOutput(NRF_RESET_PIN); writePinLow(NRF_RESET_PIN);
+    gpio_set_pin_output(NRF_RESET_PIN); gpio_write_pin_low(NRF_RESET_PIN);
     wait_ms(50);
-    writePinHigh(NRF_RESET_PIN);
+    gpio_write_pin_high(NRF_RESET_PIN);
 
-    setPinInputHigh(DEV_MODE_PIN);
-    setPinInputHigh(SYS_MODE_PIN);
+    gpio_set_pin_input_high(DEV_MODE_PIN);
+    gpio_set_pin_input_high(SYS_MODE_PIN);
 }
 
 /**
@@ -276,11 +276,11 @@ void dial_sw_scan(void)
     }
     dial_scan_timer = timer_read32();
 
-    setPinInputHigh(DEV_MODE_PIN);
-    setPinInputHigh(SYS_MODE_PIN);
+    gpio_set_pin_input_high(DEV_MODE_PIN);
+    gpio_set_pin_input_high(SYS_MODE_PIN);
 
-    if (readPin(DEV_MODE_PIN)) dial_scan |= 0X01;
-    if (readPin(SYS_MODE_PIN)) dial_scan |= 0X02;
+    if (gpio_read_pin(DEV_MODE_PIN)) dial_scan |= 0X01;
+    if (gpio_read_pin(SYS_MODE_PIN)) dial_scan |= 0X02;
 
     if (dial_save != dial_scan) {
         m_break_all_key(); 
@@ -346,15 +346,15 @@ void m_power_on_dial_sw_scan(void)
     uint8_t dial_check_sys = 0;
     uint8_t debounce = 0;
 
-    setPinInputHigh(DEV_MODE_PIN);      
-    setPinInputHigh(SYS_MODE_PIN);     
+    gpio_set_pin_input_high(DEV_MODE_PIN);      
+    gpio_set_pin_input_high(SYS_MODE_PIN);     
 
     for(debounce=0; debounce<10; debounce++) {
         dial_scan_dev = 0;
         dial_scan_sys = 0;
-        if (readPin(DEV_MODE_PIN)) dial_scan_dev = 0x01;
+        if (gpio_read_pin(DEV_MODE_PIN)) dial_scan_dev = 0x01;
         else dial_scan_dev = 0;
-        if (readPin(SYS_MODE_PIN)) dial_scan_sys = 0x01;
+        if (gpio_read_pin(SYS_MODE_PIN)) dial_scan_sys = 0x01;
         else dial_scan_sys = 0;
         if((dial_scan_dev != dial_check_dev)||(dial_scan_sys != dial_check_sys))
         {

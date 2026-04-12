@@ -50,9 +50,9 @@ void Sleep_Handle(void) {
                 uart_send_cmd(CMD_SLEEP, 5, 5);
 
             // power off led
-            writePinLow(DC_BOOST_PIN);
-            writePinLow(RGB_DRIVER_SDB1);
-            writePinLow(RGB_DRIVER_SDB2);
+            gpio_write_pin_low(DC_BOOST_PIN);
+            gpio_write_pin_low(RGB_DRIVER_SDB1);
+            gpio_write_pin_low(RGB_DRIVER_SDB2);
         }
 
         f_wakeup_prepare = 1;
@@ -61,9 +61,9 @@ void Sleep_Handle(void) {
     if (f_wakeup_prepare && (no_act_time < 10)) {
         f_wakeup_prepare = 0;
 
-        writePinHigh(DC_BOOST_PIN);
-        writePinHigh(RGB_DRIVER_SDB1);
-        writePinHigh(RGB_DRIVER_SDB2);
+        gpio_write_pin_high(DC_BOOST_PIN);
+        gpio_write_pin_high(RGB_DRIVER_SDB1);
+        gpio_write_pin_high(RGB_DRIVER_SDB2);
 
         uart_send_cmd(CMD_HAND, 0, 1);
 
