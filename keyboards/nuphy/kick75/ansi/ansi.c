@@ -90,7 +90,6 @@ extern uint8_t uart_bit_report_buf[32];
 extern uint8_t bitkb_report_buf[32];
 extern uint8_t bytekb_report_buf[8];
 
-extern void eeconfig_update_user_datablock(const void *data);
 extern void light_speed_control(uint8_t fast);
 extern void light_level_control(uint8_t brighten);
 extern void side_colour_control(uint8_t dir);
@@ -619,7 +618,7 @@ bool process_record_kb(uint16_t keycode, keyrecord_t *record) {
                 if(user_config.sleep_enable) user_config.sleep_enable = false;
                 else user_config.sleep_enable = true;
                 f_sleep_show       = 1;
-                eeconfig_update_user_datablock(&user_config);
+                eeconfig_update_user_datablock(&user_config, 0, sizeof(user_config));
             }
             return false;
 
@@ -681,7 +680,7 @@ void timer_pro(void)
  */
 void m_londing_eeprom_data(void)
 {
-    eeconfig_read_user_datablock(&user_config);
+    eeconfig_read_user_datablock(&user_config, 0, sizeof(user_config));
     if (user_config.default_brightness_flag != 0xA5) {
         rgb_matrix_sethsv(255, 255, RGB_MATRIX_MAXIMUM_BRIGHTNESS - RGB_MATRIX_VAL_STEP * 2); 
         user_config.default_brightness_flag = 0xA5;
@@ -691,7 +690,7 @@ void m_londing_eeprom_data(void)
         user_config.ee_side_rgb             = side_rgb;
         user_config.ee_side_colour          = side_colour;
         user_config.sleep_enable            = true;
-        eeconfig_update_user_datablock(&user_config);  
+        eeconfig_update_user_datablock(&user_config, 0, sizeof(user_config));  
     } else {
         side_mode   = user_config.ee_side_mode;
         side_light  = user_config.ee_side_light;
