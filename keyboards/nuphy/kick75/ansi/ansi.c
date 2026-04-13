@@ -156,31 +156,32 @@ void long_press_key(void)
     if (f_dev_reset_press) {
         dev_reset_press_delay++;
         if (dev_reset_press_delay >= DEV_RESET_PRESS_DELAY)  {
-            f_dev_reset_press = 0;                 
+            f_dev_reset_press = 0;
 
-            if (dev_info.link_mode != LINK_USB) {
-                if (dev_info.link_mode != LINK_RF_24) {
-                    dev_info.link_mode   = LINK_BT_1;
-                    dev_info.ble_channel = LINK_BT_1;
-                    dev_info.rf_channel  = LINK_BT_1;
-                }
-            } else {
-                dev_info.ble_channel = LINK_BT_1;
-                dev_info.rf_channel  = LINK_BT_1;
-            }
+            // Full factory reset: clear ALL wireless modes including 2.4G.
+            // Original NuPhy code skipped 2.4G — we now reset everything.
+            dev_info.link_mode   = LINK_BT_1;
+            dev_info.ble_channel = LINK_BT_1;
+            dev_info.rf_channel  = LINK_BT_1;
 
             uart_send_cmd(CMD_SET_LINK, 10, 10);
             wait_ms(500);
             uart_send_cmd(CMD_CLR_DEVICE, 10, 10);
+            wait_ms(200);
+            // Hardware-reset the NRF module to force a clean state
+            gpio_write_pin_low(NRF_RESET_PIN);
+            wait_ms(50);
+            gpio_write_pin_high(NRF_RESET_PIN);
+            wait_ms(50);
 
-            eeconfig_init();      
-            device_reset_show();  
-            device_reset_init();  
+            eeconfig_init();
+            device_reset_show();
+            device_reset_init();
 
             if (dev_info.sys_sw_state == SYS_SW_MAC) {
-                default_layer_set(1 << 0);  
+                default_layer_set(1 << 0);
             } else {
-                default_layer_set(1 << 2);  
+                default_layer_set(1 << 2);
             }
         }
     } else {
