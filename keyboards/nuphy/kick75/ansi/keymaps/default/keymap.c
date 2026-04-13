@@ -85,6 +85,19 @@ const uint16_t PROGMEM keymaps[][MATRIX_ROWS][MATRIX_COLS] = {
 };
 
 
+#if defined(ENCODER_MAP_ENABLE)
+const uint16_t PROGMEM encoder_map[][NUM_ENCODERS][NUM_DIRECTIONS] = {
+    [0] = { ENCODER_CCW_CW(KC_VOLD, KC_VOLU) },
+    [1] = { ENCODER_CCW_CW(KC_VOLD, KC_VOLU) },
+    [2] = { ENCODER_CCW_CW(KC_VOLD, KC_VOLU) },
+    [3] = { ENCODER_CCW_CW(KC_VOLD, KC_VOLU) },
+    [4] = { ENCODER_CCW_CW(KC_VOLD, KC_VOLU) },
+    [5] = { ENCODER_CCW_CW(KC_VOLD, KC_VOLU) },
+    [6] = { ENCODER_CCW_CW(KC_VOLD, KC_VOLU) },
+    [7] = { ENCODER_CCW_CW(KC_VOLD, KC_VOLU) },
+};
+#endif
+
 const is31fl3733_led_t PROGMEM g_is31fl3733_leds[IS31FL3733_LED_COUNT] = {
     {0, SW1_CS12,   SW2_CS12,   SW3_CS12},   
     {0, SW1_CS11,   SW2_CS11,   SW3_CS11},   
