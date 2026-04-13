@@ -12,7 +12,6 @@
         "mousekey": true,
         "extrakey": true,
         "console": true,
-        "command": false,
         "nkro": true,
         "key_lock": true,
         "encoder": true,
@@ -32,13 +31,12 @@
     "encoder": {
         "enabled": true,
         "rotary": [
-            {"pin_a": "C8", "pin_b": "C9"}
+            {"pin_a": "C8", "pin_b": "C9", "resolution": 2}
         ]
     },
     "rgb_matrix": {
         "driver": "is31fl3733",
         "center_point": [70, 20],
-        "max_brightness": 255,
         "val_steps": 64,
         "speed_steps": 52,
         "animations": {
@@ -271,4 +269,3 @@
         }
     }
 }
-
