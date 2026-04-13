@@ -37,7 +37,6 @@
         "val_steps": 64,
         "speed_steps": 52,
         "animations": {
-            "alphas_mods": true,
             "gradient_up_down": true,
             "gradient_left_right": true,
             "breathing": true,
@@ -63,9 +62,6 @@
             "hue_breathing": true,
             "hue_pendulum": true,
             "hue_wave": true,
-            "pixel_rain": true,
-            "pixel_flow": true,
-            "pixel_fractal": true,
             "typing_heatmap": true,
             "digital_rain": true,
             "solid_reactive_simple": true,
