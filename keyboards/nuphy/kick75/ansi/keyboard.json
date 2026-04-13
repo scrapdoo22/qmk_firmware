@@ -11,9 +11,7 @@
         "bootmagic": true,
         "mousekey": true,
         "extrakey": true,
-        "console": true,
         "nkro": true,
-        "key_lock": true,
         "encoder": true,
         "rgb_matrix": true
     },
@@ -22,7 +20,7 @@
     "dynamic_keymap": {
         "layer_count": 8
     },
-    "debounce": 0,
+    "debounce": 5,
     "matrix_pins": {
         "cols": ["A4", "A5", "A6", "A7", "B0", "B1", "B10", "B11", "B12", "B13", "B14", "B15", "A8", "A9", "A10", "A15", "B3"],
         "rows": ["C14", "C15", "A0", "A1", "A2", "A3"]
@@ -40,6 +38,7 @@
         "val_steps": 64,
         "speed_steps": 52,
         "animations": {
+            "alphas_mods": true,
             "gradient_up_down": true,
             "gradient_left_right": true,
             "breathing": true,
@@ -60,11 +59,15 @@
             "dual_beacon": true,
             "rainbow_beacon": true,
             "rainbow_pinwheels": true,
+            "flower_blooming": true,
             "raindrops": true,
             "jellybean_raindrops": true,
             "hue_breathing": true,
             "hue_pendulum": true,
             "hue_wave": true,
+            "pixel_rain": true,
+            "pixel_flow": true,
+            "pixel_fractal": true,
             "typing_heatmap": true,
             "digital_rain": true,
             "solid_reactive_simple": true,
@@ -78,7 +81,12 @@
             "splash": true,
             "multisplash": true,
             "solid_splash": true,
-            "solid_multisplash": true
+            "solid_multisplash": true,
+            "starlight_smooth": true,
+            "starlight": true,
+            "starlight_dual_sat": true,
+            "starlight_dual_hue": true,
+            "riverflow": true
         },
         "layout": [
             {"matrix": [0, 0],  "x": 0,     "y": 0, "flags": 4},
