@@ -58,7 +58,6 @@
             "dual_beacon": true,
             "rainbow_beacon": true,
             "rainbow_pinwheels": true,
-            "flower_blooming": true,
             "raindrops": true,
             "jellybean_raindrops": true,
             "hue_breathing": true,
@@ -80,12 +79,7 @@
             "splash": true,
             "multisplash": true,
             "solid_splash": true,
-            "solid_multisplash": true,
-            "starlight_smooth": true,
-            "starlight": true,
-            "starlight_dual_sat": true,
-            "starlight_dual_hue": true,
-            "riverflow": true
+            "solid_multisplash": true
         },
         "layout": [
             {"matrix": [0, 0],  "x": 0,     "y": 0, "flags": 4},
