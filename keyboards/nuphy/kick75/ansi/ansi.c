@@ -628,6 +628,13 @@ bool process_record_kb(uint16_t keycode, keyrecord_t *record) {
             }
             return false;
 
+        case WIN_LOCK:
+            if (record->event.pressed) {
+                keymap_config.no_gui = !keymap_config.no_gui;
+                eeconfig_update_keymap(&keymap_config);
+            }
+            return false;
+
         case RGB_TEST:
             if (record->event.pressed) {
                 f_rgb_test_press = 1;
@@ -725,6 +732,20 @@ bool rgb_matrix_indicators_kb(void)
     if(!rgb_matrix_indicators_user()){
         return false;
     }
+
+    // Light up the GUI key green when Win/Cmd lock is active.
+    // The GUI key is at a different matrix position depending on OS mode:
+    //   Win layer: row 5, col 1 (KC_LWIN)
+    //   Mac layer: row 5, col 2 (KC_LCMD)
+    if (keymap_config.no_gui) {
+        uint8_t row = 5;
+        uint8_t col = (dev_info.sys_sw_state == SYS_SW_MAC) ? 2 : 1;
+        uint8_t led_index = g_led_config.matrix_co[row][col];
+        if (led_index != NO_LED) {
+            rgb_matrix_set_color(led_index, 0, 255, 0);
+        }
+    }
+
     return true;
 }
 
