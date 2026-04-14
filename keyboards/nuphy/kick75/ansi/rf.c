@@ -1,5 +1,3 @@
-// Copyright 2023 Persama (@Persama)
-// SPDX-License-Identifier: GPL-2.0-or-later
 #include "ansi.h"
 #include "uart.h"  // qmk uart.h
 #include "rf_driver.h"
@@ -23,8 +21,6 @@ uint8_t  uart_bit_report_buf[32] = {0};
 uint8_t  func_tab[32]            = {0};
 uint8_t  bitkb_report_buf[32]    = {0};
 uint8_t  bytekb_report_buf[8]    = {0};
-uint16_t conkb_report            = 0;
-uint16_t syskb_report            = 0;
 uint8_t  sync_lost               = 0;
 uint8_t  disconnect_delay        = 0;
 bool     uart_repeat_flag        = 0;
@@ -39,14 +35,12 @@ extern uint16_t        no_act_time;
 extern bool            f_send_channel;
 extern bool            f_dial_sw_init_ok;
 
-report_mouse_t mousekey_get_report(void);
 void           uart_init(uint32_t baud); // qmk uart.c
 void           uart_send_report(uint8_t report_type, uint8_t *report_buf, uint8_t report_size);
 void           UART_Send_Bytes(uint8_t *Buffer, uint32_t Length);
 uint8_t        get_checksum(uint8_t *buf, uint8_t len);
 void           uart_receive_pro(void);
 void           m_break_all_key(void);
-uint16_t       host_last_consumer_usage(void);
 
 /**
  * @brief Uart auto nkey send

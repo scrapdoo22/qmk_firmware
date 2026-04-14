@@ -1,20 +1,3 @@
-/*
-Copyright 2023 @ Nuphy <https://nuphy.com/>
-
-This program is free software: you can redistribute it and/or modify
-it under the terms of the GNU General Public License as published by
-the Free Software Foundation, either version 2 of the License, or
-(at your option) any later version.
-
-This program is distributed in the hope that it will be useful,
-but WITHOUT ANY WARRANTY; without even the implied warranty of
-MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-GNU General Public License for more details.
-
-You should have received a copy of the GNU General Public License
-along with this program.  If not, see <http://www.gnu.org/licenses/>.
-*/
-
 #include "ansi.h"
 #include "usb_main.h"
 #include "rf_driver.h"
@@ -32,27 +15,22 @@ DEV_INFO_STRUCT dev_info =
     .rf_state   = RF_IDLE,
 };
 
-bool f_uart_ack         = 0; 
-bool f_bat_show         = 0;  
-bool f_bat_hold         = 0;  
-bool f_dev_sleep_enable = 1; 
-bool f_chg_show         = 1;  
-bool f_sys_show         = 0; 
-bool f_sleep_show       = 0; 
-bool f_func_save        = 0;  
-bool f_rf_read_data_ok  = 0;  
-bool f_rf_sts_sysc_ok   = 0; 
-bool f_rf_new_adv_ok    = 0;  
-bool f_rf_reset         = 0;  
-bool f_send_channel     = 0;  
-bool f_rf_hand_ok       = 0;  
-bool f_dial_sw_init_ok  = 0;  
-bool f_goto_sleep       = 0; 
-bool f_wakeup_prepare   = 0; 
-bool f_rf_sw_press      = 0;  
-bool f_dev_reset_press  = 0;  
-bool f_rgb_test_press   = 0;  
-bool f_bat_num_show     = 0;
+bool f_uart_ack         = 0;
+bool f_bat_hold         = 0;
+bool f_sys_show         = 0;
+bool f_sleep_show       = 0;
+bool f_rf_read_data_ok  = 0;
+bool f_rf_sts_sysc_ok   = 0;
+bool f_rf_new_adv_ok    = 0;
+bool f_rf_reset         = 0;
+bool f_send_channel     = 0;
+bool f_rf_hand_ok       = 0;
+bool f_dial_sw_init_ok  = 0;
+bool f_goto_sleep       = 0;
+bool f_wakeup_prepare   = 0;
+bool f_rf_sw_press      = 0;
+bool f_dev_reset_press  = 0;
+bool f_rgb_test_press   = 0;
 
 uint8_t host_mode;
 host_driver_t *m_host_driver   = 0;
@@ -94,7 +72,6 @@ extern void light_speed_control(uint8_t fast);
 extern void light_level_control(uint8_t brighten);
 extern void side_colour_control(uint8_t dir);
 extern void side_mode_control(uint8_t dir);
-extern void num_led_show(void);
 
 
 

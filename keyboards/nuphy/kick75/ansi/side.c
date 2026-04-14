@@ -1,20 +1,3 @@
-/*
-Copyright 2023 @ Nuphy <https://nuphy.com/>
-
-This program is free software: you can redistribute it and/or modify
-it under the terms of the GNU General Public License as published by
-the Free Software Foundation, either version 2 of the License, or
-(at your option) any later version.
-
-This program is distributed in the hope that it will be useful,
-but WITHOUT ANY WARRANTY; without even the implied warranty of
-MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-GNU General Public License for more details.
-
-You should have received a copy of the GNU General Public License
-along with this program.  If not, see <http://www.gnu.org/licenses/>.
-*/
-
 #include "ansi.h"
 #include "side.h"
 
@@ -414,20 +397,9 @@ static void side_breathe_mode_show(void)
 
     light_point_playing(0, 1, BREATHE_TAB_LEN, &play_point);
 
-    if (0) {
-        if (play_point == 0) {
-            if (++side_play_point >= LIGHT_COLOUR_MAX)
-                side_play_point = 0;
-        }
-
-        r_temp = colour_lib[side_play_point][0];
-        g_temp = colour_lib[side_play_point][1];
-        b_temp = colour_lib[side_play_point][2];
-    } else {
-        r_temp = colour_lib[side_colour][0];
-        g_temp = colour_lib[side_colour][1];
-        b_temp = colour_lib[side_colour][2];
-    }
+    r_temp = colour_lib[side_colour][0];
+    g_temp = colour_lib[side_colour][1];
+    b_temp = colour_lib[side_colour][2];
 
     count_rgb_light(breathe_data_tab[play_point]);
     count_rgb_light(side_light_table[side_light]);
@@ -442,8 +414,6 @@ static void side_breathe_mode_show(void)
  */
 static void side_static_mode_show(void)
 {
-    uint8_t play_index;
-
     if (side_play_cnt <= side_speed_table[side_mode][side_speed])
         return;
     else
@@ -453,21 +423,13 @@ static void side_static_mode_show(void)
     if (side_play_point >= SIDE_COLOUR_MAX) side_play_point = 0;
 
     for (int i = 0; i < SIDE_LINE; i++) {
-        if (0) {
-            r_temp = flow_rainbow_colour_tab[16 * i][0];
-            g_temp = flow_rainbow_colour_tab[16 * i][1];
-            b_temp = flow_rainbow_colour_tab[16 * i][2];
-            light_point_playing(0, 24, FLOW_COLOUR_TAB_LEN, &play_index);
-        } else
-        {
-            r_temp = colour_lib[side_colour][0];
-            g_temp = colour_lib[side_colour][1];
-            b_temp = colour_lib[side_colour][2];
-        }
+        r_temp = colour_lib[side_colour][0];
+        g_temp = colour_lib[side_colour][1];
+        b_temp = colour_lib[side_colour][2];
 
         count_rgb_light(side_light_table[side_light]);
 
-        rgb_matrix_set_color(side_led_index_tab[i], r_temp, g_temp, b_temp); 
+        rgb_matrix_set_color(side_led_index_tab[i], r_temp, g_temp, b_temp);
     }
 }
 

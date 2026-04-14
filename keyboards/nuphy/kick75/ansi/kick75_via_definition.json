@@ -119,7 +119,6 @@
 		{"name": "Sleep\nMode",   "title": "Auto Sleep"},
 		{"name": "Bat\nShow",     "title": "Battery Show"},
 		{"name": "RGB\nTest",     "title": "Hold for 3 seconds for RGB color test"},
-		{"name": "Tilde",         "title": "SHIFT+` = ~"},
 		{"name": "Side\nLight+",  "title": "Side Light +"},
 		{"name": "Side\nLight-",  "title": "Side Light -"},
 		{"name": "Side\nMode",    "title": "Side Next Mode"},
