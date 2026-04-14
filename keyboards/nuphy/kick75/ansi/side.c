@@ -625,7 +625,6 @@ void bat_led_show(void)
 /**
  * @brief  device_reset_show.
  */
-void rgb_matrix_update_pwm_buffers(void);
 void device_reset_show(void)
 {
     gpio_write_pin_high(DC_BOOST_PIN);

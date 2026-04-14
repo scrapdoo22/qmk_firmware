@@ -4,14 +4,14 @@
 #define DYNAMIC_KEYMAP_MACRO_DELAY  8
 #define EECONFIG_USER_DATA_SIZE     8
 
-#define DEV_MODE_PIN               C0  
-#define SYS_MODE_PIN               C1 
-#define DC_BOOST_PIN               C2 
-#define NRF_RESET_PIN              B4 
-#define NRF_BOOT_PIN               B5  
-#define NRF_WAKEUP_PIN             C4 
-#define RGB_DRIVER_SDB1            C6  
-#define RGB_DRIVER_SDB2            C7  
+#define DEV_MODE_PIN               C0
+#define SYS_MODE_PIN               C1
+#define DC_BOOST_PIN               C2
+#define NRF_RESET_PIN              B4
+#define NRF_BOOT_PIN               B5
+#define NRF_WAKEUP_PIN             C4
+#define RGB_DRIVER_SDB1            C6
+#define RGB_DRIVER_SDB2            C7
 
 // UART driver for NRF RF module communication via USART1.
 // Must use UART_* names (not SD1_*) to match current QMK's
@@ -52,5 +52,5 @@
 // DRIVER_COUNT and LED totals are now auto-derived from
 // IS31FL3733_I2C_ADDRESS_N defines and keyboard.json respectively.
 
-#define RGB_MATRIX_DEFAULT_MODE    RGB_MATRIX_CYCLE_LEFT_RIGHT  
+#define RGB_MATRIX_DEFAULT_MODE    RGB_MATRIX_CYCLE_LEFT_RIGHT
 #define RGB_MATRIX_SLEEP

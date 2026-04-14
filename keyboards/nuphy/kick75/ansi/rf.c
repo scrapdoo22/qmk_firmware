@@ -1,6 +1,5 @@
 #include "ansi.h"
 #include "uart.h"  // qmk uart.h
-#include "rf_driver.h"
 
 USART_MGR_STRUCT Usart_Mgr;
 #define RX_SBYTE    Usart_Mgr.RXDBuf[0]
@@ -18,7 +17,6 @@ extern bool f_rf_hand_ok;
 extern bool f_goto_sleep;
 
 uint8_t  uart_bit_report_buf[32] = {0};
-uint8_t  func_tab[32]            = {0};
 uint8_t  bitkb_report_buf[32]    = {0};
 uint8_t  bytekb_report_buf[8]    = {0};
 uint8_t  sync_lost               = 0;
@@ -27,6 +25,7 @@ bool     uart_repeat_flag        = 0;
 
 extern DEV_INFO_STRUCT dev_info;
 extern host_driver_t  *m_host_driver;
+extern host_driver_t   rf_host_driver;
 extern uint8_t         host_mode;
 extern uint8_t         rf_blink_cnt;
 extern uint16_t        rf_link_show_time;
@@ -258,18 +257,22 @@ void RF_Protocol_Receive(void) {
             }
 
             case CMD_READ_DATA: {
-                memcpy(func_tab, &Usart_Mgr.RXDBuf[4], 32);
+                // Payload starts at RXDBuf[4]; we only need offsets 4, 5, 6
+                // from that payload (= RXDBuf[8..10]) for the link config.
+                uint8_t link_mode_byte   = Usart_Mgr.RXDBuf[8];
+                uint8_t rf_channel_byte  = Usart_Mgr.RXDBuf[9];
+                uint8_t ble_channel_byte = Usart_Mgr.RXDBuf[10];
 
-                if (func_tab[4] <= LINK_USB) {
-                    dev_info.link_mode = func_tab[4];
+                if (link_mode_byte <= LINK_USB) {
+                    dev_info.link_mode = link_mode_byte;
                 }
 
-                if (func_tab[5] < LINK_USB) {
-                    dev_info.rf_channel = func_tab[5];
+                if (rf_channel_byte < LINK_USB) {
+                    dev_info.rf_channel = rf_channel_byte;
                 }
 
-                if ((func_tab[6] <= LINK_BT_3) && (func_tab[6] >= LINK_BT_1)) {
-                    dev_info.ble_channel = func_tab[6];
+                if ((ble_channel_byte <= LINK_BT_3) && (ble_channel_byte >= LINK_BT_1)) {
+                    dev_info.ble_channel = ble_channel_byte;
                 }
 
                 f_rf_read_data_ok = 1;
@@ -360,7 +363,7 @@ uint8_t uart_send_cmd(uint8_t cmd, uint8_t wait_ack, uint8_t delayms) {
 
         case CMD_SET_NAME: {
             Usart_Mgr.TXDBuf[3]  = 15;                                                       // data len
-            Usart_Mgr.TXDBuf[4]  = 1;                                                        // type     0-带尾缀    1-带尾缀
+            Usart_Mgr.TXDBuf[4]  = 1;                                                        // name suffix type
             Usart_Mgr.TXDBuf[5]  = 13;                                                       // data: ble name len
             Usart_Mgr.TXDBuf[6]  = 'N';                                                      // data: ble name
             Usart_Mgr.TXDBuf[7]  = 'u';                                                      // data: ble name
@@ -498,7 +501,6 @@ void dev_sts_sync(void) {
                 link_state_temp   = RF_CONNECT;
                 rf_link_show_time = 0;
                 if (dev_info.link_mode == LINK_RF_24) {
-                    // 连接后设置一次2.4G名称
                     uart_send_cmd(CMD_SET_24G_NAME, 10, 30);
                 }
             }
@@ -642,10 +644,9 @@ void rf_uart_init(void) {
  * @brief RF module initial.
  */
 void rf_device_init(void) {
-    uint8_t timeout = 0;
-    void    uart_receive_pro(void);
+    uint8_t timeout = 10;
 
-    timeout      = 10;
+
     f_rf_hand_ok = 0;
     while (timeout--) {
         uart_send_cmd(CMD_HAND, 0, 20);

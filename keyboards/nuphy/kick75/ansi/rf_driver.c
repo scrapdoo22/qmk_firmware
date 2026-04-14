@@ -1,5 +1,4 @@
 #include "host_driver.h"
-#include "rf_driver.h"
 #include "host.h"
 #include "ansi.h"
 

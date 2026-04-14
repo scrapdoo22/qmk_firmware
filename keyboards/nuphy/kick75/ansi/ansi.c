@@ -1,6 +1,5 @@
 #include "ansi.h"
 #include "usb_main.h"
-#include "rf_driver.h"
 
 
 #define RF_LONG_PRESS_DELAY   30
@@ -67,6 +66,7 @@ extern report_nkro_t *nkro_report;
 extern uint8_t uart_bit_report_buf[32];
 extern uint8_t bitkb_report_buf[32];
 extern uint8_t bytekb_report_buf[8];
+extern host_driver_t rf_host_driver;
 
 extern void light_speed_control(uint8_t fast);
 extern void light_level_control(uint8_t brighten);
