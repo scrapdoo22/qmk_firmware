@@ -32,12 +32,13 @@
 #define IS31FL3733_I2C_ADDRESS_1   IS31FL3733_I2C_ADDRESS_GND_GND
 #define IS31FL3733_I2C_ADDRESS_2   IS31FL3733_I2C_ADDRESS_GND_VCC
 
-#define IS31FL3733_I2C_TIMEOUT     1
+#define IS31FL3733_I2C_TIMEOUT     100
+#define IS31FL3733_I2C_PERSISTENCE 3
 
 #define I2C_DRIVER                 I2CD1
 #define I2C1_SCL_PIN               B8
 #define I2C1_SDA_PIN               B9
-#define I2C1_CLOCK_SPEED           1000000
+#define I2C1_CLOCK_SPEED           400000
 
 #define I2C1_SCL_PAL_MODE          1
 #define I2C1_SDA_PAL_MODE          1
@@ -47,7 +48,6 @@
 #define I2C1_TIMINGR_SDADEL        0U
 #define I2C1_TIMINGR_SCLH          0U
 #define I2C1_TIMINGR_SCLL          0U
-#define I2C1_DUTY_CYCLE            FAST_DUTY_CYCLE_16_9
 
 // DRIVER_COUNT and LED totals are now auto-derived from
 // IS31FL3733_I2C_ADDRESS_N defines and keyboard.json respectively.
