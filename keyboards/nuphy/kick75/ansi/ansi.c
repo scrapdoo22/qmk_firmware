@@ -378,13 +378,6 @@ bool process_record_kb(uint16_t keycode, keyrecord_t *record) {
     }
     no_act_time = 0;
     switch (keycode) {
-        case RF_DFU:
-            if (record->event.pressed) {
-                if (dev_info.link_mode != LINK_USB) return false;
-                uart_send_cmd(CMD_RF_DFU, 10, 20); 
-            }
-            return false;
-
         case LNK_USB:
             if (record->event.pressed) {
                 m_break_all_key();
@@ -494,54 +487,11 @@ bool process_record_kb(uint16_t keycode, keyrecord_t *record) {
             }
             return false;
 
-        case MAC_CONSOLE:
-            if (record->event.pressed) {
-                host_consumer_send(0x02A0);
-            } else {
-                host_consumer_send(0);
-            }
-            return false;
-
         case MAC_DND:
             if (record->event.pressed) {
                 host_system_send(0x9b);
             } else {
                 host_system_send(0);
-            }
-            return false;
-
-        case MAC_PRT:
-            if (record->event.pressed) {
-                register_code(KC_LGUI);
-                register_code(KC_LSFT);
-                register_code(KC_3);
-                wait_ms(50);
-                unregister_code(KC_3);
-                unregister_code(KC_LSFT);
-                unregister_code(KC_LGUI);
-            }
-            return false;
-
-        case MAC_PRTA:
-            if (record->event.pressed) {
-                if (keymap_config.nkro) {
-                    register_code(KC_LGUI);
-                    register_code(KC_LSFT);
-                    register_code(KC_S);
-                    wait_ms(50);
-                    unregister_code(KC_S);
-                    unregister_code(KC_LSFT);
-                    unregister_code(KC_LGUI);
-                }
-                else {
-                    register_code(KC_LGUI);
-                    register_code(KC_LSFT);
-                    register_code(KC_4);
-                    wait_ms(50);
-                    unregister_code(KC_4);
-                    unregister_code(KC_LSFT);
-                    unregister_code(KC_LGUI);
-                }
             }
             return false;
 

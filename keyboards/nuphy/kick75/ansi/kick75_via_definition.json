@@ -101,7 +101,6 @@
 		"qmk_lighting"
 	],
 	"customKeycodes": [
-		{"name": "RF\nDFU",       "title": "RF DFU"},
 		{"name": "Link\nUSB",     "title": "Link USB"},
 		{"name": "Link\nRF",      "title": "Link RF"},
 		{"name": "Link\nBLE_1",   "title": "Link BLE_1"},
@@ -110,10 +109,7 @@
 		{"name": "Mac\nTask",     "title": "Mac Task"},
 		{"name": "Mac\nSearch",   "title": "Mac Search"},
 		{"name": "Mac\nVoice",    "title": "Mac Siri Voice"},
-		{"name": "Mac\nConsole",  "title": "Mac Console"},
 		{"name": "Mac\nDnt",      "title": "Mac Dnt"},
-		{"name": "Print\nWhole",  "title": "PrintWhole"},
-		{"name": "Print\nArea",   "title": "PrintArea"},
 		{"name": "Win\nlock",     "title": "Win lock"},
 		{"name": "Dev\nReset",    "title": "Device Reset"},
 		{"name": "Sleep\nMode",   "title": "Auto Sleep"},

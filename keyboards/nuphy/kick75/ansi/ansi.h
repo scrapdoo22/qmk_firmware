@@ -3,8 +3,7 @@
 #include "quantum.h"
 
 enum custom_keycodes {
-    RF_DFU = QK_KB_0,
-    LNK_USB,
+    LNK_USB = QK_KB_0,
     LNK_RF,
     LNK_BLE1,
     LNK_BLE2,
@@ -13,10 +12,7 @@ enum custom_keycodes {
     MAC_TASK,
     MAC_SEARCH,
     MAC_VOICE,
-    MAC_CONSOLE,
     MAC_DND,
-    MAC_PRT,
-    MAC_PRTA,
 
     WIN_LOCK,
     DEV_RESET,
@@ -72,8 +68,6 @@ typedef enum {
 #define CMD_NEW_ADV      0XC7
 #define CMD_RF_STS_SYSC  0XC9
 #define CMD_SET_24G_NAME 0XCA
-
-#define CMD_RF_DFU       0XB1  
 
 #define CMD_READ_DATA    0X81
 

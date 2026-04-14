@@ -417,13 +417,6 @@ uint8_t uart_send_cmd(uint8_t cmd, uint8_t wait_ack, uint8_t delayms) {
             break;
         }
 
-        case CMD_RF_DFU: {
-            Usart_Mgr.TXDBuf[3] = 1;
-            Usart_Mgr.TXDBuf[4] = 0;
-            Usart_Mgr.TXDBuf[5] = 0;
-            break;
-        }
-
         default:
             break;
     }
