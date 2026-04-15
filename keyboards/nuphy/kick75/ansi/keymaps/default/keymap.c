@@ -3,9 +3,13 @@
 // Keymap-level custom keycodes (QK_USER range)
 enum keymap_keycodes {
     BOOT_HOLD = QK_USER_0,  // Hold Fn+Esc for 2s to enter bootloader
+    NKRO_HOLD,              // Hold Fn+encoder for 2s to toggle NKRO (boot menu mode)
 };
 
+#define HOLD_ACTIVATE_MS 2000
+
 static uint16_t boot_hold_timer = 0;
+static uint16_t nkro_hold_timer = 0;
 
 bool process_record_user(uint16_t keycode, keyrecord_t *record) {
     if (keycode == BOOT_HOLD) {
@@ -13,8 +17,26 @@ bool process_record_user(uint16_t keycode, keyrecord_t *record) {
             boot_hold_timer = timer_read();
         } else {
             // Only enter bootloader if held for 2+ seconds
-            if (timer_elapsed(boot_hold_timer) > 2000) {
+            if (timer_elapsed(boot_hold_timer) > HOLD_ACTIVATE_MS) {
                 reset_keyboard();
+            }
+        }
+        return false;
+    }
+    if (keycode == NKRO_HOLD) {
+        // Hold-to-toggle NKRO (a.k.a. "boot menus toggle"). Requires a
+        // long press because accidental encoder clicks on the Fn layer
+        // would otherwise flip NKRO silently — and NKRO mismatch between
+        // the keyboard and BIOS/boot menu is a classic "my keyboard
+        // doesn't work in BIOS" trap. Same 2s hold as BOOT_HOLD.
+        if (record->event.pressed) {
+            nkro_hold_timer = timer_read();
+        } else {
+            if (timer_elapsed(nkro_hold_timer) > HOLD_ACTIVATE_MS) {
+                clear_keyboard();  // drop any in-flight keys before the mode switch
+                keymap_config.nkro = !keymap_config.nkro;
+                eeconfig_update_keymap(&keymap_config);
+                clear_keyboard();  // and again after, to be safe
             }
         }
         return false;
@@ -34,7 +56,7 @@ const uint16_t PROGMEM keymaps[][MATRIX_ROWS][MATRIX_COLS] = {
 	KC_LCTL,	KC_LOPT,	KC_LCMD,										KC_SPC, 							KC_RCMD,	MO(1),   				KC_LEFT,	KC_DOWN,    KC_RIGHT),
 // layer Mac Fn
 [1] = LAYOUT(
-	BOOT_HOLD, 	KC_F1,  	KC_F2,  	KC_F3, 		KC_F4,  	KC_F5,  	KC_F6,  	KC_F7,  	KC_F8,  	KC_F9, 		KC_F10, 	KC_F11, 	KC_F12, 	KC_INS,	    _______,
+	BOOT_HOLD, 	KC_F1,  	KC_F2,  	KC_F3, 		KC_F4,  	KC_F5,  	KC_F6,  	KC_F7,  	KC_F8,  	KC_F9, 		KC_F10, 	KC_F11, 	KC_F12, 	KC_INS,	    NKRO_HOLD,
 	_______, 	LNK_BLE1,  	LNK_BLE2,  	LNK_BLE3,  	LNK_RF,   	_______,   	_______,   	_______,   	_______,   	_______,  	_______,   	_______,	_______, 	_______,	KC_END,
 	RM_TOGG, 	_______,   	_______,   	_______,   	_______,   	_______,   	_______,   	_______,   	_______,   	_______,  	_______,   	DEV_RESET,	SLEEP_MODE, BAT_SHOW,	_______,	
 	_______,	_______,   	_______,   	_______,  	_______,   	_______,   	_______,	_______,   	_______,   	_______,  	_______,	_______, 	_______,                _______,
@@ -50,7 +72,7 @@ const uint16_t PROGMEM keymaps[][MATRIX_ROWS][MATRIX_COLS] = {
 	KC_LCTL,	KC_LWIN,	KC_LALT,										KC_SPC, 							KC_RALT,	MO(3),	                KC_LEFT,   	KC_DOWN,	KC_RIGHT),
 // layer win Fn
 [3] = LAYOUT(
-	BOOT_HOLD, 	KC_BRID,  	KC_BRIU,  	_______, 	_______,  	_______,  	_______,  	KC_MPRV,  	KC_MPLY,  	KC_MNXT, 	KC_MUTE, 	KC_VOLD, 	KC_VOLU, 	KC_INS,	    _______,
+	BOOT_HOLD, 	KC_BRID,  	KC_BRIU,  	_______, 	_______,  	_______,  	_______,  	KC_MPRV,  	KC_MPLY,  	KC_MNXT, 	KC_MUTE, 	KC_VOLD, 	KC_VOLU, 	KC_INS,	    NKRO_HOLD,
 	_______, 	LNK_BLE1,  	LNK_BLE2,  	LNK_BLE3,  	LNK_RF,   	_______,   	_______,   	_______,   	_______,   	_______,  	_______,   	_______,	_______, 	_______,	KC_END,
 	RM_TOGG,	_______,   	_______,   	_______,  	_______,   	_______,   	_______,   	_______,   	_______,   	_______,  	_______,   	DEV_RESET,	SLEEP_MODE, BAT_SHOW,	_______,	
 	_______,	_______,   	_______,   	_______,  	_______,   	_______,   	_______,	_______,   	_______,   	_______,  	_______,	_______, 	_______,                _______,
