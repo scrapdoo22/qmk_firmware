@@ -73,12 +73,6 @@ extern void light_level_control(uint8_t brighten);
 extern void side_colour_control(uint8_t dir);
 extern void side_mode_control(uint8_t dir);
 
-
-
-
-/**
- * @brief  gpio initial.
- */
 void m_gpio_init(void)
 {
     gpio_set_pin_output(DC_BOOST_PIN); gpio_write_pin_high(DC_BOOST_PIN);
@@ -99,9 +93,9 @@ void m_gpio_init(void)
     gpio_set_pin_input_high(SYS_MODE_PIN);
 }
 
-/**
- * @brief  long press key process.
- */
+// Runs every 100ms from housekeeping. Counts how long the user has
+// been holding Fn+Tab (RF pairing), Fn+Esc (device reset), or Fn+RGB
+// (RGB test) and fires the action after a ~3-second hold.
 void long_press_key(void)
 {
     static uint32_t long_press_timer = 0;
@@ -237,9 +231,9 @@ static void switch_dev_link(uint8_t mode)
     }
 }
 
-/**
- * @brief  scan dial switch.
- */
+// Polls the two mode switches (USB/BT and Win/Mac) on every housekeeping
+// tick with a 20ms debounce, and switches host driver / default layer
+// when the user flips a switch.
 void dial_sw_scan(void)
 {
     uint8_t dial_scan               = 0;
@@ -312,9 +306,9 @@ void dial_sw_scan(void)
     }
 }
 
-/**
- * @brief  power on scan dial switch.
- */
+// One-shot version of dial_sw_scan used at boot: samples the two mode
+// switches for ~10ms to get a stable initial reading before entering
+// the main loop.
 void m_power_on_dial_sw_scan(void)
 {
     uint8_t dial_scan_dev = 0;
@@ -369,9 +363,6 @@ void m_power_on_dial_sw_scan(void)
     }
 }
 
-/**
- * @brief  qmk process record
- */
 bool process_record_kb(uint16_t keycode, keyrecord_t *record) {
     if(!process_record_user(keycode, record)){
         return false;
@@ -576,9 +567,8 @@ bool process_record_kb(uint16_t keycode, keyrecord_t *record) {
 }
 
 
-/**
- *   @brief  timer process.
- */
+// Software "tick" counters incremented every 10ms. Used by indicator
+// blink periods, RF link-loss detection, and inactivity sleep.
 void timer_pro(void)
 {
     static uint32_t interval_timer = 0;
@@ -609,9 +599,8 @@ void timer_pro(void)
 }
 
 
-/**
- * @brief  londing eeprom data.
- */
+// Loads user_config from EEPROM at boot. On first boot (sentinel byte
+// unset) seeds the block with current defaults and writes it back.
 void m_londing_eeprom_data(void)
 {
     eeconfig_read_user_datablock(&user_config, 0, sizeof(user_config));
@@ -635,9 +624,6 @@ void m_londing_eeprom_data(void)
 }
 
 
-/** 
- *   qmk keyboard post init
- */
 void keyboard_post_init_kb(void)
 {
     m_gpio_init(); 
@@ -651,9 +637,6 @@ void keyboard_post_init_kb(void)
     keyboard_post_init_user();
 }
 
-/**
-   rgb_matrix_indicators_user
- */
 bool rgb_matrix_indicators_kb(void)
 {
     if(!rgb_matrix_indicators_user()){

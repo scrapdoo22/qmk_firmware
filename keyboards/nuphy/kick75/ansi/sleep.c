@@ -11,9 +11,10 @@ extern uint16_t             no_act_time;
 
 uint8_t uart_send_cmd(uint8_t cmd, uint8_t ack_cnt, uint8_t delayms);
 
-/**
- * @brief  Sleep Handle.
- */
+// Drives the auto-sleep state machine. On USB, sleeps after 1s of USB
+// suspend. On RF, sleeps after SLEEP_TIME_DELAY of no key activity,
+// or immediately if the RF link goes idle/disconnected. On wakeup,
+// re-runs the RF handshake and clears held keys.
 void Sleep_Handle(void) {
     static uint32_t delay_step_timer = 0;
     static uint8_t  usb_suspend_debounce;

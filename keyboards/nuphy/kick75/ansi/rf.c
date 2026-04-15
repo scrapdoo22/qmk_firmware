@@ -41,9 +41,9 @@ uint8_t        get_checksum(uint8_t *buf, uint8_t len);
 void           uart_receive_pro(void);
 void           m_break_all_key(void);
 
-/**
- * @brief Uart auto nkey send
- */
+// Diffs the previous and current NKRO bit reports and emits either a
+// 6-key byte report (preferred, compact) or a bit report (fallback
+// when >6 keys are down) to the RF UART.
 bool f_bit_kb_act = 0;
 static void uart_auto_nkey_send(uint8_t *pre_bit_report, uint8_t *now_bit_report, uint8_t size)
 {
@@ -104,9 +104,8 @@ static void uart_auto_nkey_send(uint8_t *pre_bit_report, uint8_t *now_bit_report
 }
 
 
-/**
- * @brief  Uart send keys report.
- */
+// Main RF send loop: polls the current keyboard report against the
+// last-sent report and calls uart_auto_nkey_send when they differ.
 void uart_send_report_func(void)
 {
     static uint32_t interval_timer = 0;
@@ -286,12 +285,9 @@ void RF_Protocol_Receive(void) {
     }
 }
 
-/**
- * @brief  Uart send cmd.
- * @param  cmd: cmd.
- * @param  wait_ack: wait time for ack after sending.
- * @param  delayms: delay before sending.
- */
+// Sends a command frame to the RF module. wait_ack: poll count for an
+// ack from the module (0 = fire-and-forget). delayms: delay inserted
+// before sending, to space back-to-back commands.
 uint8_t uart_send_cmd(uint8_t cmd, uint8_t wait_ack, uint8_t delayms) {
     wait_ms(delayms);
 
@@ -436,9 +432,8 @@ uint8_t uart_send_cmd(uint8_t cmd, uint8_t wait_ack, uint8_t delayms) {
     return TX_TIMEOUT;
 }
 
-/**
- * @brief RF module state sync.
- */
+// Polls the RF module for link state / battery / LED state every
+// 500ms and copies the result into dev_info.
 void dev_sts_sync(void) {
     static uint32_t interval_timer  = 0;
     static uint8_t  link_state_temp = RF_DISCONNECT;
@@ -510,11 +505,9 @@ void dev_sts_sync(void) {
     }
 }
 
-/**
- * @brief Uart send bytes.
- * @param Buffer data buf
- * @param Length data length
- */
+// Transmits a raw byte buffer to the RF module, framed by a brief pulse
+// on NRF_WAKEUP_PIN. If uart_repeat_flag is set, transmits 3x as a
+// cheap retry for unreliable links.
 void UART_Send_Bytes(uint8_t *Buffer, uint32_t Length) {
     if(uart_repeat_flag) {
         for(uint8_t i = 0;i<3;i++)
@@ -540,11 +533,7 @@ void UART_Send_Bytes(uint8_t *Buffer, uint32_t Length) {
     }
 }
 
-/**
- * @brief get checksum.
- * @param buf data buf
- * @param len data length
- */
+// XOR checksum: sum the bytes in buf, then XOR with UART_HEAD.
 uint8_t get_checksum(uint8_t *buf, uint8_t len) {
     uint8_t i;
     uint8_t checksum = 0;
@@ -557,12 +546,8 @@ uint8_t get_checksum(uint8_t *buf, uint8_t len) {
     return checksum;
 }
 
-/**
- * @brief Uart send report.
- * @param report_type  report_type
- * @param report_buf  report_buf
- * @param report_size  report_size
- */
+// Wraps a HID report in the RF frame format (head + type + ack +
+// length + payload + checksum) and sends it to the RF module.
 void uart_send_report(uint8_t report_type, uint8_t *report_buf, uint8_t report_size) {
     if (f_dial_sw_init_ok == 0) return;
     if (dev_info.link_mode == LINK_USB) return;
@@ -585,9 +570,9 @@ void uart_send_report(uint8_t report_type, uint8_t *report_buf, uint8_t report_s
     wait_us(200);
 }
 
-/**
- * @brief Uart receives data and processes it after completion,.
- */
+// Drains bytes from the UART RX FIFO into Usart_Mgr.RXDBuf. When a
+// full frame has been assembled (state == RX_Done), calls
+// uart_receive_ok() to act on it.
 void uart_receive_pro(void) {
     static bool rcv_start = false;
 
@@ -616,9 +601,7 @@ void uart_receive_pro(void) {
     }
 }
 
-/**
- * @brief  RF uart initial.
- */
+// Initializes USART1 for the RF link (1Mbaud, 8-E-1, half-duplex).
 void rf_uart_init(void) {
     /* set uart buad as 460800 */
     uart_init(460800);
@@ -633,9 +616,8 @@ void rf_uart_init(void) {
     GPIOB->PUPDR |= (GPIO_PUPDR_PUPDR6_0 | GPIO_PUPDR_PUPDR7_0);
 }
 
-/**
- * @brief RF module initial.
- */
+// Sends a handshake to the RF module and waits for its ack. Retries
+// up to `timeout` times before giving up and continuing cold.
 void rf_device_init(void) {
     uint8_t timeout = 10;
 

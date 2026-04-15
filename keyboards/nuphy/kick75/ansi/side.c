@@ -55,29 +55,17 @@ extern user_config_t user_config;
 extern uint8_t rf_blink_cnt;
 extern uint16_t rf_link_show_time;
 
-/**
- * @brief suspend_power_down_kb
- *
- */
 void suspend_power_down_kb(void)
 {
     rgb_matrix_set_suspend_state(true);
 }
 
-/**
- * @brief suspend_wakeup_init_kb
- *
- */
 void suspend_wakeup_init_kb(void)
 {
     rgb_matrix_set_suspend_state(false);
 }
 
-/**
- * @brief  Adjusting the brightness of side lights.
- * @param  dir: 0 - decrease, 1 - increase.
- * @note  save to eeprom.
- */
+// Adjusts side-light brightness. brighten: 1 = up, 0 = down.
 void light_level_control(uint8_t brighten)
 {
     if (brighten)
@@ -97,11 +85,7 @@ void light_level_control(uint8_t brighten)
     user_config_schedule_save();
 }
 
-/**
- * @brief  Adjusting the speed of side lights.
- * @param  dir: 0 - decrease, 1 - increase.
- * @note  save to eeprom.
- */
+// Adjusts side-light animation speed. fast: 1 = faster, 0 = slower.
 void light_speed_control(uint8_t fast)
 {
     if ((side_speed) > LIGHT_SPEED_MAX)
@@ -116,11 +100,7 @@ void light_speed_control(uint8_t fast)
     user_config_schedule_save();
 }
 
-/**
- * @brief  Switch to the next color of side lights.
- * @param  dir: 0 - prev, 1 - next.
- * @note  save to eeprom.
- */
+// Cycles through side-light colors. dir: 1 = next, 0 = prev.
 void side_colour_control(uint8_t dir)
 {
     if (side_mode != SIDE_WAVE) {
@@ -158,11 +138,7 @@ void side_colour_control(uint8_t dir)
     user_config_schedule_save();
 }
 
-/**
- * @brief  Change the color mode of side lights.
- * @param  dir: 0 - prev, 1 - next.
- * @note  save to eeprom.
- */
+// Cycles through side-light animation modes. dir: 1 = next, 0 = prev.
 void side_mode_control(uint8_t dir)
 {
     if (dir) {
@@ -182,19 +158,14 @@ void side_mode_control(uint8_t dir)
     user_config_schedule_save();
 }
 
-/**
- * @brief  set left side leds.
- * @param  ...
- */
 void set_left_rgb(uint8_t r, uint8_t g, uint8_t b)
 {
     for (int i = 0; i < SIDE_LINE; i++)
         rgb_matrix_set_color(SIDE_INDEX + i, r, g, b);
 }
 
-/**
- * @brief   system switch led show
- */
+// Briefly flashes the left side strip (~3s) white for Mac, blue for
+// Win whenever the OS mode switch is toggled.
 void sys_sw_led_show(void)
 {
     static uint32_t sys_show_timer = 0;
@@ -228,9 +199,8 @@ void sys_sw_led_show(void)
     }
 }
 
-/**
- * @brief  sleep enable or disable indicate
- */
+// Briefly flashes the left side strip (~3s) green when auto-sleep is
+// enabled, red when disabled, as feedback for the SLEEP_MODE keycode.
 void sleep_sw_led_show(void)
 {
     static uint32_t sleep_show_timer = 0;
@@ -264,9 +234,8 @@ void sleep_sw_led_show(void)
     }
 }
 
-/**
- * @brief  host system led indicate.
- */
+// Lights the left side strip cyan when caps lock is on (USB) or the
+// RF link reports caps lock on (RF mode).
 void sys_led_show(void)
 {
     if (dev_info.link_mode == LINK_USB) {
@@ -281,13 +250,8 @@ void sys_led_show(void)
     }
 }
 
-/**
- * @brief  light_point_playing.
- * @param trend:
- * @param step:
- * @param len:
- * @param point:
- */
+// Advances an animation cursor (*point) by `step` within a cyclic
+// table of length `len`. trend: 1 = forward, 0 = backward.
 static void light_point_playing(uint8_t trend, uint8_t step, uint8_t len, uint8_t *point)
 {
     if (trend) {
@@ -299,10 +263,8 @@ static void light_point_playing(uint8_t trend, uint8_t step, uint8_t len, uint8_
     }
 }
 
-/**
- * @brief  count_rgb_light.
- * @param light_temp:
- */
+// Scales r_temp/g_temp/b_temp by (light_temp/255). Used to apply a
+// brightness curve point to the current side-light color.
 static void count_rgb_light(uint8_t light_temp)
 {
     uint16_t temp;
@@ -317,9 +279,6 @@ static void count_rgb_light(uint8_t light_temp)
     b_temp = temp >> 8;
 }
 
-/**
- * @brief  side_wave_mode_show.
- */
 static void side_wave_mode_show(void)
 {
     uint8_t play_index;
@@ -358,9 +317,6 @@ static void side_wave_mode_show(void)
     }
 }
 
-/**
- * @brief  side_spectrum_mode_show.
- */
 static void side_spectrum_mode_show(void)
 {
     if (side_play_cnt <= side_speed_table[side_mode][side_speed])
@@ -382,9 +338,6 @@ static void side_spectrum_mode_show(void)
     }
 }
 
-/**
- * @brief  side_breathe_mode_show.
- */
 static void side_breathe_mode_show(void)
 {
     static uint8_t play_point = 0;
@@ -409,9 +362,6 @@ static void side_breathe_mode_show(void)
     }
 }
 
-/**
- * @brief  side_static_mode_show.
- */
 static void side_static_mode_show(void)
 {
     if (side_play_cnt <= side_speed_table[side_mode][side_speed])
@@ -433,9 +383,6 @@ static void side_static_mode_show(void)
     }
 }
 
-/**
- * @brief  side_off_mode_show.
- */
 static void side_off_mode_show(void)
 {
     if (side_play_cnt <= side_speed_table[side_mode][side_speed])
@@ -453,12 +400,11 @@ static void side_off_mode_show(void)
     }
 }
 
-/**
- * @brief  rf state indicate
- */
- #define RF_LED_LINK_PERIOD 500
+#define RF_LED_LINK_PERIOD 500
 #define RF_LED_PAIR_PERIOD 250
 
+// Drives the left side strip to show RF link state: solid color when
+// connected, blinking while pairing/linking, off once stable.
 void rf_led_show(void)
 {
     static uint32_t rf_blink_timer = 0;
@@ -511,13 +457,12 @@ void rf_led_show(void)
     set_left_rgb(r_temp, g_temp, b_temp);
 }
 
-/**
- * @brief  Battery level indicator
- */
 uint8_t bat_pwm_buf[6 * 3] = {0};
 uint8_t bat_end_led        = 0;
 uint8_t bat_r, bat_g, bat_b;
 
+// Maps battery percentage to a color on the left side strip:
+// <=20% red, <=80% amber, >80% green.
 void bat_percent_led(uint8_t bat_percent)
 {
     if (bat_percent <= 20) {
@@ -542,9 +487,9 @@ void bat_percent_led(uint8_t bat_percent)
     rgb_matrix_set_color(SIDE_INDEX + i, bat_r, bat_g, bat_b);
 }
 
-/**
- * @brief  battery state indicate
- */
+// Shows battery status on the left side strip: briefly when charging
+// state changes or battery drops below 10%, held while BAT_SHOW is
+// toggled on.
 void bat_led_show(void)
 {
     static uint8_t play_point      = 0;
@@ -622,9 +567,7 @@ void bat_led_show(void)
 }
 
 
-/**
- * @brief  device_reset_show.
- */
+// Plays a 3x white-flash animation as feedback after DEV_RESET fires.
 void device_reset_show(void)
 {
     gpio_write_pin_high(DC_BOOST_PIN);
@@ -641,9 +584,8 @@ void device_reset_show(void)
     }
 }
 
-/**
- * @brief  device_reset_init.
- */
+// Resets side-light / RGB matrix state to factory defaults and
+// schedules the new config to be written to EEPROM.
 void device_reset_init(void)
 {
     side_mode       = 0;
@@ -673,16 +615,14 @@ void device_reset_init(void)
     user_config_schedule_save();
 }
 
-/**
- * @brief  rgb test
- */
+// Flashes the whole matrix through red/green/blue (1s each) as a
+// manual LED test. Blocks for ~3 seconds.
 void rgb_test_show(void)
 {
     gpio_write_pin_high(DC_BOOST_PIN);
     gpio_write_pin_high(RGB_DRIVER_SDB1);
     gpio_write_pin_high(RGB_DRIVER_SDB2);
 
-    //set test color
     rgb_matrix_set_color_all(0xFF, 0x00, 0x00);
     rgb_matrix_update_pwm_buffers();
     wait_ms(1000);
@@ -696,9 +636,9 @@ void rgb_test_show(void)
     wait_ms(1000);
 }
 
-/**
- * @brief  side_led_show.
- */
+// Top-level side-strip driver, called from housekeeping each tick.
+// Runs the active animation then overlays indicators (battery, caps,
+// OS switch, sleep, RF link) on top.
 void m_side_led_show(void)
 {
     static bool flag_power_on         = 1;
