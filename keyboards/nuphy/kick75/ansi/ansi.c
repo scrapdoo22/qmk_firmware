@@ -672,8 +672,9 @@ bool rgb_matrix_indicators_kb(void)
         ? host_keyboard_led_state().caps_lock
         : (dev_info.rf_led & 0x02);
     if (caps_on) {
-        // KC_CAPS sits at row 2, col 0 in both the Win and Mac keymaps.
-        uint8_t caps_led = g_led_config.matrix_co[2][0];
+        // KC_CAPS sits at row 3, col 0 in both the Win and Mac keymaps
+        // (row 2 is the Tab row — don't confuse the two).
+        uint8_t caps_led = g_led_config.matrix_co[3][0];
         if (caps_led != NO_LED) {
             rgb_matrix_set_color(caps_led, 0, 128, 128);
         }
