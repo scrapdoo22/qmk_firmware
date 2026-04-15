@@ -9,7 +9,11 @@
 #define LIGHT_COLOUR_MAX 8
 #define SIDE_COLOUR_MAX  8
 #define LIGHT_SPEED_MAX  4
-#define SIDE_BLINK_LIGHT 128
+// Brightness used by all side-strip indicator overlays (caps lock,
+// OS switch flash, sleep toggle flash, battery level). Set to 255 so
+// indicators remain visible even when the main effect brightness is
+// set very low.
+#define SIDE_BLINK_LIGHT 255
 #define SIDE_LINE  5
 #define SIDE_INDEX 80
 

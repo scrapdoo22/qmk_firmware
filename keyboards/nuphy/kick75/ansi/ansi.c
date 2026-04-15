@@ -676,9 +676,11 @@ bool rgb_matrix_indicators_kb(void)
     if (caps_on) {
         // KC_CAPS sits at row 3, col 0 in both the Win and Mac keymaps
         // (row 2 is the Tab row — don't confuse the two).
+        // Use full-brightness cyan (255) so the indicator stays visible
+        // even when the matrix base brightness is set low.
         uint8_t caps_led = g_led_config.matrix_co[3][0];
         if (caps_led != NO_LED) {
-            rgb_matrix_set_color(caps_led, 0, 128, 128);
+            rgb_matrix_set_color(caps_led, 0, 255, 255);
         }
     }
 
