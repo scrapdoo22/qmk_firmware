@@ -656,6 +656,22 @@ bool rgb_matrix_indicators_kb(void)
         }
     }
 
+    // Light the Caps Lock key cyan when caps lock is active. Matches the
+    // cyan side-light indicator from side.c's sys_led_show() so both
+    // visual cues share one color scheme. In USB mode the state comes
+    // from host_keyboard_led_state(); in RF mode the RF link reports it
+    // in dev_info.rf_led bit 1 (HID LED bit for caps lock).
+    bool caps_on = (dev_info.link_mode == LINK_USB)
+        ? host_keyboard_led_state().caps_lock
+        : (dev_info.rf_led & 0x02);
+    if (caps_on) {
+        // KC_CAPS sits at row 2, col 0 in both the Win and Mac keymaps.
+        uint8_t caps_led = g_led_config.matrix_co[2][0];
+        if (caps_led != NO_LED) {
+            rgb_matrix_set_color(caps_led, 0, 128, 128);
+        }
+    }
+
     return true;
 }
 
