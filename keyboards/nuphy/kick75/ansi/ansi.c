@@ -688,6 +688,18 @@ bool rgb_matrix_indicators_kb(void)
         }
     }
 
+    // Light the bottom-left control key bright pink when the mouse
+    // jiggler is active. LCTL lives at row 5, col 0 on both Win and
+    // Mac keymaps — same physical key that toggles the jiggler via
+    // Fn+LCTL — so the indicator sits right on the toggle key.
+    extern bool jiggler_active;
+    if (jiggler_active) {
+        uint8_t lctl_led = g_led_config.matrix_co[5][0];
+        if (lctl_led != NO_LED) {
+            rgb_matrix_set_color(lctl_led, 255, 0, 128);  // bright pink
+        }
+    }
+
     return true;
 }
 
