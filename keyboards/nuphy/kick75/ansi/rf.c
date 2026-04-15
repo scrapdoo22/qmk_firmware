@@ -25,7 +25,6 @@ bool     uart_repeat_flag        = 0;
 
 extern dev_info_t dev_info;
 extern host_driver_t  *m_host_driver;
-extern host_driver_t   rf_host_driver;
 extern uint8_t         host_mode;
 extern uint8_t         rf_blink_cnt;
 extern uint16_t        rf_link_show_time;
@@ -40,6 +39,12 @@ void           UART_Send_Bytes(uint8_t *Buffer, uint32_t Length);
 uint8_t        get_checksum(uint8_t *buf, uint8_t len);
 void           uart_receive_pro(void);
 void           m_break_all_key(void);
+
+/* Forward declaration of the RF host driver vtable. The definition is
+ * at the bottom of this file, but dev_sts_sync() below passes its
+ * address to host_set_driver().
+ */
+extern host_driver_t rf_host_driver;
 
 // Diffs the previous and current NKRO bit reports and emits either a
 // 6-key byte report (preferred, compact) or a bit report (fallback
@@ -655,3 +660,40 @@ void rf_device_init(void) {
 
     uart_send_cmd(CMD_SET_24G_NAME, 10, 20);
 }
+
+/* ============ RF host driver ============
+ * QMK's host_driver_t vtable. Used when link_mode != LINK_USB to route
+ * HID reports through the RF UART instead of the native USB stack.
+ * Moved here from the old rf_driver.c so all RF code lives in one file.
+ */
+static uint8_t rf_keyboard_leds(void) {
+    return dev_info.rf_led;
+}
+
+static void rf_send_keyboard(report_keyboard_t *report) {
+    uart_send_report_keyboard(report);
+}
+
+static void rf_send_nkro(report_nkro_t *report) {
+    uart_send_report_nkro(report);
+}
+
+static void rf_send_mouse(report_mouse_t *report) {
+    uart_send_mouse_report(report);
+}
+
+static void rf_send_extra(report_extra_t *report) {
+    if (report->report_id == REPORT_ID_CONSUMER) {
+        uart_send_consumer_report(report);
+    } else if (report->report_id == REPORT_ID_SYSTEM) {
+        uart_send_system_report(report);
+    }
+}
+
+host_driver_t rf_host_driver = {
+    rf_keyboard_leds,
+    rf_send_keyboard,
+    rf_send_nkro,
+    rf_send_mouse,
+    rf_send_extra,
+};
