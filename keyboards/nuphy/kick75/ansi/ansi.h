@@ -125,3 +125,7 @@ typedef struct
     uint8_t sleep_enable;
     uint8_t retain2;
 } user_config_t;
+
+// Schedules a deferred write of user_config to EEPROM. Coalesces
+// rapid calls into one flash write (see ansi.c for the mechanism).
+void user_config_schedule_save(void);

@@ -545,7 +545,7 @@ bool process_record_kb(uint16_t keycode, keyrecord_t *record) {
                 if(user_config.sleep_enable) user_config.sleep_enable = false;
                 else user_config.sleep_enable = true;
                 f_sleep_show       = 1;
-                eeconfig_update_user_datablock(&user_config, 0, sizeof(user_config));
+                user_config_schedule_save();
             }
             return false;
 
@@ -676,9 +676,26 @@ bool rgb_matrix_indicators_kb(void)
     return true;
 }
 
-/**
-   housekeeping_task_kb
- */
+// Deferred EEPROM save. Flushes user_config ~500ms after the last
+// schedule call, so rapid side-light / sleep key presses coalesce into
+// one flash write instead of blocking the main loop on every press.
+#define USER_CONFIG_SAVE_DELAY_MS 500
+
+static bool     user_config_dirty      = false;
+static uint16_t user_config_dirty_time = 0;
+
+void user_config_schedule_save(void) {
+    user_config_dirty      = true;
+    user_config_dirty_time = timer_read();
+}
+
+static void user_config_maybe_save(void) {
+    if (user_config_dirty && timer_elapsed(user_config_dirty_time) > USER_CONFIG_SAVE_DELAY_MS) {
+        eeconfig_update_user_datablock(&user_config, 0, sizeof(user_config));
+        user_config_dirty = false;
+    }
+}
+
 void housekeeping_task_kb(void)
 {
     timer_pro();
@@ -696,4 +713,6 @@ void housekeeping_task_kb(void)
     m_side_led_show();
 
     Sleep_Handle();
+
+    user_config_maybe_save();
 }
