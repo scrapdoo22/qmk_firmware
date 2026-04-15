@@ -26,6 +26,11 @@ enum custom_keycodes {
     SIDE_HUI,
     SIDE_SPI,
     SIDE_SPD,
+
+    // Scaffolded feature: toggles a "mouse jiggler" that nudges the
+    // cursor +/-2 pixels every 60s to keep the host awake. Not placed
+    // in the default keymap — assign it in VIA when you want to use it.
+    MOUSE_JIGGLE,
 };
 
 

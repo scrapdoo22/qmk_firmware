@@ -561,6 +561,13 @@ bool process_record_kb(uint16_t keycode, keyrecord_t *record) {
             }
             return false;
 
+        case MOUSE_JIGGLE:
+            if (record->event.pressed) {
+                extern bool jiggler_active;
+                jiggler_active = !jiggler_active;
+            }
+            return false;
+
         default:
             return true;
     }
@@ -695,6 +702,27 @@ static void user_config_maybe_save(void) {
     }
 }
 
+// Mouse jiggler. Toggled on/off by the MOUSE_JIGGLE custom keycode.
+// When active, sends a 2-pixel horizontal nudge every 60 seconds,
+// alternating direction so the cursor averages to zero drift over time.
+// Not wired into the default keymap — VIA-assignable only.
+#define JIGGLER_INTERVAL_MS 60000
+bool            jiggler_active    = false;
+static uint32_t jiggler_last_time = 0;
+static int8_t   jiggler_direction = 1;
+
+static void jiggler_task(void) {
+    if (!jiggler_active) return;
+    if (timer_elapsed32(jiggler_last_time) < JIGGLER_INTERVAL_MS) return;
+    jiggler_last_time = timer_read32();
+
+    report_mouse_t r = {0};
+    r.x = jiggler_direction * 2;
+    host_mouse_send(&r);
+
+    jiggler_direction = -jiggler_direction;
+}
+
 void housekeeping_task_kb(void)
 {
     timer_pro();
@@ -714,4 +742,6 @@ void housekeeping_task_kb(void)
     Sleep_Handle();
 
     user_config_maybe_save();
+
+    jiggler_task();
 }

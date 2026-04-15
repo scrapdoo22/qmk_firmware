@@ -120,6 +120,7 @@
 		{"name": "Side\nMode",    "title": "Side Next Mode"},
 		{"name": "Side\nColor",   "title": "Side Next Color"},
 		{"name": "Side\nFast",    "title": "Side Speed +"},
-		{"name": "Side\nSlow",    "title": "Side Speed -"}
+		{"name": "Side\nSlow",    "title": "Side Speed -"},
+		{"name": "Mouse\nJiggle", "title": "Mouse Jiggler (toggle)"}
 	]
 }
