@@ -10,10 +10,12 @@
 #define SIDE_COLOUR_MAX  8
 #define LIGHT_SPEED_MAX  4
 // Brightness used by all side-strip indicator overlays (caps lock,
-// OS switch flash, sleep toggle flash, battery level). Set to 255 so
-// indicators remain visible even when the main effect brightness is
-// set very low.
-#define SIDE_BLINK_LIGHT 255
+// OS switch flash, sleep toggle flash, battery level). Stays at the
+// stock 128 because the side LEDs are physically brighter than the
+// under-key LEDs — bumping this to 255 looked washed-out. Key
+// indicators (set via rgb_matrix_set_color in ansi.c) use 255
+// instead, where it looks right.
+#define SIDE_BLINK_LIGHT 128
 #define SIDE_LINE  5
 #define SIDE_INDEX 80
 
