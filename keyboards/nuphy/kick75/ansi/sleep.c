@@ -3,7 +3,7 @@
 #include "usb_main.h"
 
 extern user_config_t    user_config;
-extern DEV_INFO_STRUCT      dev_info;
+extern dev_info_t      dev_info;
 extern bool                 f_wakeup_prepare;
 extern bool                 f_goto_sleep;
 extern uint16_t             rf_linking_time;

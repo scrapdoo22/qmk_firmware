@@ -3,7 +3,7 @@
 #include "ansi.h"
 
 /* Variable declaration */
-extern DEV_INFO_STRUCT dev_info;
+extern dev_info_t dev_info;
 
 /* Host driver */
 static uint8_t rf_keyboard_leds(void);

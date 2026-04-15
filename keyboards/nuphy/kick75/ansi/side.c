@@ -49,7 +49,7 @@ uint8_t side_play_cnt       = 0;
 uint32_t side_play_timer    = 0;
 uint8_t r_temp, g_temp, b_temp;
 
-extern DEV_INFO_STRUCT dev_info;
+extern dev_info_t dev_info;
 extern bool f_bat_hold;
 extern user_config_t user_config;
 extern uint8_t rf_blink_cnt;
@@ -508,7 +508,7 @@ void bat_led_show(void)
         f_init        = 0;
         bat_show_time = timer_read32();
         charge_state  = dev_info.rf_charge;
-        bat_percent   = dev_info.rf_baterry;
+        bat_percent   = dev_info.rf_battery;
     }
 
     if (charge_state != dev_info.rf_charge) {
@@ -531,13 +531,13 @@ void bat_led_show(void)
             bat_show_breath = true;
         }
         else if (charge_state & 0x01) {
-            dev_info.rf_baterry = 100;
+            dev_info.rf_battery = 100;
         }
     }
 
-    if (bat_percent != dev_info.rf_baterry) {
+    if (bat_percent != dev_info.rf_battery) {
         if (timer_elapsed32(bat_per_debounce) > 1000) {
-            bat_percent = dev_info.rf_baterry;
+            bat_percent = dev_info.rf_battery;
         }
     }
     else {

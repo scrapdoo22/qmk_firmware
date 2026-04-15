@@ -7,9 +7,9 @@
 #define RGB_TEST_PRESS_DELAY  30
 
 user_config_t user_config; 
-DEV_INFO_STRUCT dev_info =
+dev_info_t dev_info =
 {
-    .rf_baterry = 100,
+    .rf_battery = 100,
     .link_mode  = LINK_USB,
     .rf_state   = RF_IDLE,
 };

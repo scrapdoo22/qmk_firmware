@@ -29,16 +29,20 @@ enum custom_keycodes {
 };
 
 
+// UART receive state machine. Stored in usart_mgr_t.RXDState.
 typedef enum {
-    RX_Idle,
-    RX_Receiving,
-    RX_Done,
-    RX_Fail,
+    RX_IDLE,
+    RX_RECEIVING,
+    RX_DONE,
+    RX_FAIL,
     RX_SUM_ERR,
+} uart_rx_state_t;
 
-    TX_OK = 0XE0,
-    TX_TIMEOUT = 0XE3,
-} TYPE_RX_STATE;
+// Return codes for uart_send_cmd. Kept as #defines (not an enum)
+// because the function returns uint8_t and no caller currently
+// inspects the result.
+#define TX_OK      0xE0
+#define TX_TIMEOUT 0xE3
 
 #define FUNC_VALID_LEN   32
 
@@ -80,26 +84,26 @@ typedef enum {
 #define UART_MAX_LEN     64
 typedef struct
 {
-    uint8_t RXDState;             
-    uint8_t RXDLen;               
-    uint8_t RXDOverTime;          
-    uint8_t TXDLenBack;            
-    uint8_t TXDOffset;             
-    uint8_t TXDBuf[UART_MAX_LEN];  
-    uint8_t RXDBuf[UART_MAX_LEN];  
-} USART_MGR_STRUCT;
+    uint8_t RXDState;
+    uint8_t RXDLen;
+    uint8_t RXDOverTime;
+    uint8_t TXDLenBack;
+    uint8_t TXDOffset;
+    uint8_t TXDBuf[UART_MAX_LEN];
+    uint8_t RXDBuf[UART_MAX_LEN];
+} usart_mgr_t;
 
 typedef struct
 {
-    uint8_t link_mode;    
-    uint8_t rf_channel;    
-    uint8_t ble_channel;   
-    uint8_t rf_state;     
-    uint8_t rf_charge;    
-    uint8_t rf_led;       
-    uint8_t rf_baterry;   
-    uint8_t sys_sw_state;  
-} DEV_INFO_STRUCT;
+    uint8_t link_mode;
+    uint8_t rf_channel;
+    uint8_t ble_channel;
+    uint8_t rf_state;
+    uint8_t rf_charge;
+    uint8_t rf_led;
+    uint8_t rf_battery;
+    uint8_t sys_sw_state;
+} dev_info_t;
 
 
 #define SYS_SW_WIN        0xa1

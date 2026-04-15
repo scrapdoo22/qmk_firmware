@@ -1,7 +1,7 @@
 #include "ansi.h"
 #include "uart.h"  // qmk uart.h
 
-USART_MGR_STRUCT Usart_Mgr;
+usart_mgr_t Usart_Mgr;
 #define RX_SBYTE    Usart_Mgr.RXDBuf[0]
 #define RX_CMD      Usart_Mgr.RXDBuf[1]
 #define RX_ACK      Usart_Mgr.RXDBuf[2]
@@ -23,7 +23,7 @@ uint8_t  sync_lost               = 0;
 uint8_t  disconnect_delay        = 0;
 bool     uart_repeat_flag        = 0;
 
-extern DEV_INFO_STRUCT dev_info;
+extern dev_info_t dev_info;
 extern host_driver_t  *m_host_driver;
 extern host_driver_t   rf_host_driver;
 extern uint8_t         host_mode;
@@ -181,7 +181,7 @@ void uart_send_report_nkro(report_nkro_t *report) {
 void RF_Protocol_Receive(void) {
     uint8_t i, check_sum = 0;
 
-    if (Usart_Mgr.RXDState == RX_Done) {
+    if (Usart_Mgr.RXDState == RX_DONE) {
         f_uart_ack = 1;
         sync_lost = 0;
 
@@ -237,8 +237,8 @@ void RF_Protocol_Receive(void) {
 
                     dev_info.rf_charge = Usart_Mgr.RXDBuf[7];
 
-                    if (Usart_Mgr.RXDBuf[8] <= 100) dev_info.rf_baterry = Usart_Mgr.RXDBuf[8];
-                    if (dev_info.rf_charge & 0x01) dev_info.rf_baterry = 100;
+                    if (Usart_Mgr.RXDBuf[8] <= 100) dev_info.rf_battery = Usart_Mgr.RXDBuf[8];
+                    if (dev_info.rf_charge & 0x01) dev_info.rf_battery = 100;
                 }
                 else {
                     if (dev_info.rf_state != RF_INVALID) {
@@ -280,7 +280,7 @@ void RF_Protocol_Receive(void) {
         }
 
         Usart_Mgr.RXDLen      = 0;
-        Usart_Mgr.RXDState    = RX_Idle;
+        Usart_Mgr.RXDState    = RX_IDLE;
         Usart_Mgr.RXDOverTime = 0;
     }
 }
@@ -571,7 +571,7 @@ void uart_send_report(uint8_t report_type, uint8_t *report_buf, uint8_t report_s
 }
 
 // Drains bytes from the UART RX FIFO into Usart_Mgr.RXDBuf. When a
-// full frame has been assembled (state == RX_Done), calls
+// full frame has been assembled (state == RX_DONE), calls
 // uart_receive_ok() to act on it.
 void uart_receive_pro(void) {
     static bool rcv_start = false;
@@ -595,7 +595,7 @@ void uart_receive_pro(void) {
     // Processing received serial port protocol
     if (rcv_start) {
         rcv_start          = false;
-        Usart_Mgr.RXDState = RX_Done;
+        Usart_Mgr.RXDState = RX_DONE;
         RF_Protocol_Receive();
         Usart_Mgr.RXDLen   = 0;
     }
