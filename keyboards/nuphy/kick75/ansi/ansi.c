@@ -565,8 +565,12 @@ bool process_record_kb(uint16_t keycode, keyrecord_t *record) {
 
         case MOUSE_JIGGLE:
             if (record->event.pressed) {
-                extern bool jiggler_active;
+                extern bool    jiggler_active;
+                extern uint8_t jiggler_step;
                 jiggler_active = !jiggler_active;
+                // Restart cross pattern from step 0 so each toggle-on
+                // begins the cycle at "up" for predictability.
+                jiggler_step   = 0;
             }
             return false;
 
@@ -708,33 +712,47 @@ static void user_config_maybe_save(void) {
 }
 
 // Mouse jiggler. Toggled on/off by the MOUSE_JIGGLE custom keycode.
-// When active, sends a horizontal mouse nudge on a timer, alternating
-// direction so the cursor averages to zero drift over time.
-//
-// TESTING VALUES (currently active): 80px every 2s — very obvious so
-//   you can verify the toggle works.
-// PRODUCTION VALUES (commented below): 2px every 60s — subtle, just
-//   enough to keep the host awake without disrupting cursor use.
-// Swap the two #define blocks once testing is done.
+// When active, walks the cursor through a cross pattern:
+//   up → return → right → return → down → return → left → return → ...
+// Each step is JIGGLER_NUDGE_PX pixels, fired every JIGGLER_INTERVAL_MS.
+// Every step cancels the previous one, so over a full 8-step cycle the
+// cursor always comes back to its starting position — no long-term
+// drift. The pattern is intentionally obnoxious rather than subtle:
+// jiggler use implies you're stepping away, so being noticeable is a
+// feature (so you never forget it's on and wonder why your mouse
+// behaves oddly).
 #define JIGGLER_INTERVAL_MS 2000
 #define JIGGLER_NUDGE_PX    80
-// #define JIGGLER_INTERVAL_MS 60000
-// #define JIGGLER_NUDGE_PX    2
 
 bool            jiggler_active    = false;
+uint8_t         jiggler_step      = 0;  // 0..7, cycles through cross
 static uint32_t jiggler_last_time = 0;
-static int8_t   jiggler_direction = 1;
 
 static void jiggler_task(void) {
     if (!jiggler_active) return;
     if (timer_elapsed32(jiggler_last_time) < JIGGLER_INTERVAL_MS) return;
     jiggler_last_time = timer_read32();
 
+    // Cross pattern: each "out" step is followed by a "return" step
+    // that cancels it, so the cursor averages to the origin.
+    //   0: up         1: return (down)
+    //   2: right      3: return (left)
+    //   4: down       5: return (up)
+    //   6: left       7: return (right)
     report_mouse_t r = {0};
-    r.x = jiggler_direction * JIGGLER_NUDGE_PX;
+    switch (jiggler_step) {
+        case 0: r.y = -JIGGLER_NUDGE_PX; break;  // up
+        case 1: r.y =  JIGGLER_NUDGE_PX; break;  // back down to origin
+        case 2: r.x =  JIGGLER_NUDGE_PX; break;  // right
+        case 3: r.x = -JIGGLER_NUDGE_PX; break;  // back left to origin
+        case 4: r.y =  JIGGLER_NUDGE_PX; break;  // down
+        case 5: r.y = -JIGGLER_NUDGE_PX; break;  // back up to origin
+        case 6: r.x = -JIGGLER_NUDGE_PX; break;  // left
+        case 7: r.x =  JIGGLER_NUDGE_PX; break;  // back right to origin
+    }
     host_mouse_send(&r);
 
-    jiggler_direction = -jiggler_direction;
+    jiggler_step = (jiggler_step + 1) & 0x07;  // wrap 0..7
 }
 
 // Drives the auto-sleep state machine. On USB, sleeps after 1s of USB
