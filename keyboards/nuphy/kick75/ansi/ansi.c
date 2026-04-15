@@ -708,10 +708,19 @@ static void user_config_maybe_save(void) {
 }
 
 // Mouse jiggler. Toggled on/off by the MOUSE_JIGGLE custom keycode.
-// When active, sends a 2-pixel horizontal nudge every 60 seconds,
-// alternating direction so the cursor averages to zero drift over time.
-// Not wired into the default keymap — VIA-assignable only.
-#define JIGGLER_INTERVAL_MS 60000
+// When active, sends a horizontal mouse nudge on a timer, alternating
+// direction so the cursor averages to zero drift over time.
+//
+// TESTING VALUES (currently active): 80px every 2s — very obvious so
+//   you can verify the toggle works.
+// PRODUCTION VALUES (commented below): 2px every 60s — subtle, just
+//   enough to keep the host awake without disrupting cursor use.
+// Swap the two #define blocks once testing is done.
+#define JIGGLER_INTERVAL_MS 2000
+#define JIGGLER_NUDGE_PX    80
+// #define JIGGLER_INTERVAL_MS 60000
+// #define JIGGLER_NUDGE_PX    2
+
 bool            jiggler_active    = false;
 static uint32_t jiggler_last_time = 0;
 static int8_t   jiggler_direction = 1;
@@ -722,7 +731,7 @@ static void jiggler_task(void) {
     jiggler_last_time = timer_read32();
 
     report_mouse_t r = {0};
-    r.x = jiggler_direction * 2;
+    r.x = jiggler_direction * JIGGLER_NUDGE_PX;
     host_mouse_send(&r);
 
     jiggler_direction = -jiggler_direction;
