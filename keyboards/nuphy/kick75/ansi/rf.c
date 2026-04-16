@@ -46,9 +46,7 @@ void           m_break_all_key(void);
  */
 extern host_driver_t rf_host_driver;
 
-// Diffs the previous and current NKRO bit reports and emits either a
-// 6-key byte report (preferred, compact) or a bit report (fallback
-// when >6 keys are down) to the RF UART.
+// Diffs NKRO bit reports → emits byte or bit report to RF UART.
 bool f_bit_kb_act = 0;
 static void uart_auto_nkey_send(uint8_t *pre_bit_report, uint8_t *now_bit_report, uint8_t size)
 {
@@ -109,8 +107,7 @@ static void uart_auto_nkey_send(uint8_t *pre_bit_report, uint8_t *now_bit_report
 }
 
 
-// Main RF send loop: polls the current keyboard report against the
-// last-sent report and calls uart_auto_nkey_send when they differ.
+// RF report send loop — diffs current vs last-sent, emits on change.
 void uart_send_report_func(void)
 {
     static uint32_t interval_timer = 0;
@@ -290,9 +287,7 @@ void RF_Protocol_Receive(void) {
     }
 }
 
-// Sends a command frame to the RF module. wait_ack: poll count for an
-// ack from the module (0 = fire-and-forget). delayms: delay inserted
-// before sending, to space back-to-back commands.
+// Send command frame to RF module (wait_ack=0 → fire-and-forget).
 uint8_t uart_send_cmd(uint8_t cmd, uint8_t wait_ack, uint8_t delayms) {
     wait_ms(delayms);
 
@@ -437,8 +432,7 @@ uint8_t uart_send_cmd(uint8_t cmd, uint8_t wait_ack, uint8_t delayms) {
     return TX_TIMEOUT;
 }
 
-// Polls the RF module for link state / battery / LED state every
-// 500ms and copies the result into dev_info.
+// Polls RF module status (link, battery, LEDs) every 200ms.
 void dev_sts_sync(void) {
     static uint32_t interval_timer  = 0;
     static uint8_t  link_state_temp = RF_DISCONNECT;
@@ -510,9 +504,7 @@ void dev_sts_sync(void) {
     }
 }
 
-// Transmits a raw byte buffer to the RF module, framed by a brief pulse
-// on NRF_WAKEUP_PIN. If uart_repeat_flag is set, transmits 3x as a
-// cheap retry for unreliable links.
+// Transmit raw bytes to RF module (3x retries if uart_repeat_flag set).
 void UART_Send_Bytes(uint8_t *Buffer, uint32_t Length) {
     if(uart_repeat_flag) {
         for(uint8_t i = 0;i<3;i++)

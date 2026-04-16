@@ -50,7 +50,6 @@ void dev_sts_sync(void);
 void uart_send_report_func(void);
 void uart_receive_pro(void);
 void Sleep_Handle(void);
-void Sleep_Handle(void);
 uint8_t uart_send_cmd(uint8_t cmd, uint8_t ack_cnt, uint8_t delayms);
 void uart_send_report(uint8_t report_type, uint8_t *report_buf, uint8_t report_size);
 
@@ -95,9 +94,7 @@ void m_gpio_init(void)
     gpio_set_pin_input_high(SYS_MODE_PIN);
 }
 
-// Runs every 100ms from housekeeping. Counts how long the user has
-// been holding Fn+Tab (RF pairing), Fn+Esc (device reset), or Fn+RGB
-// (RGB test) and fires the action after a ~3-second hold.
+// 100ms tick: counts hold durations for RF pairing, device reset, RGB test.
 void long_press_key(void)
 {
     static uint32_t long_press_timer = 0;
@@ -171,9 +168,6 @@ void long_press_key(void)
     }
 }
 
-/**
- * @brief  Release all keys, clear keyboard report.
- */
 void m_break_all_key(void)
 {
     uint8_t report_buf[16];
@@ -208,10 +202,6 @@ void m_break_all_key(void)
     memset(bytekb_report_buf, 0, sizeof(bytekb_report_buf));
 }
 
-/**
- * @brief  switch device link mode.
- * @param mode : link mode
- */
 static void switch_dev_link(uint8_t mode)
 {
     if (mode > LINK_USB) return;
@@ -233,9 +223,7 @@ static void switch_dev_link(uint8_t mode)
     }
 }
 
-// Polls the two mode switches (USB/BT and Win/Mac) on every housekeeping
-// tick with a 20ms debounce, and switches host driver / default layer
-// when the user flips a switch.
+// Polls USB/BT and Win/Mac hardware switches with debounce.
 void dial_sw_scan(void)
 {
     uint8_t dial_scan               = 0;
@@ -308,9 +296,7 @@ void dial_sw_scan(void)
     }
 }
 
-// One-shot version of dial_sw_scan used at boot: samples the two mode
-// switches for ~10ms to get a stable initial reading before entering
-// the main loop.
+// Boot-time switch sampling (~10ms debounce).
 void m_power_on_dial_sw_scan(void)
 {
     uint8_t dial_scan_dev = 0;
@@ -552,6 +538,7 @@ bool process_record_kb(uint16_t keycode, keyrecord_t *record) {
             if (record->event.pressed) {
                 keymap_config.no_gui = !keymap_config.no_gui;
                 eeconfig_update_keymap(&keymap_config);
+                side_flash_trigger(0, 128, 0);  // green
             }
             return false;
 
@@ -568,9 +555,8 @@ bool process_record_kb(uint16_t keycode, keyrecord_t *record) {
                 extern bool    jiggler_active;
                 extern uint8_t jiggler_step;
                 jiggler_active = !jiggler_active;
-                // Restart cross pattern from step 0 so each toggle-on
-                // begins the cycle at "up" for predictability.
                 jiggler_step   = 0;
+                side_flash_trigger(128, 0, 64);  // pink (matches key indicator)
             }
             return false;
 
@@ -580,8 +566,7 @@ bool process_record_kb(uint16_t keycode, keyrecord_t *record) {
 }
 
 
-// Software "tick" counters incremented every 10ms. Used by indicator
-// blink periods, RF link-loss detection, and inactivity sleep.
+// 10ms tick counters for RF link, inactivity, and blink timers.
 void timer_pro(void)
 {
     static uint32_t interval_timer = 0;
@@ -612,8 +597,7 @@ void timer_pro(void)
 }
 
 
-// Loads user_config from EEPROM at boot. On first boot (sentinel byte
-// unset) seeds the block with current defaults and writes it back.
+// Load user_config from EEPROM; seed defaults on first boot.
 void m_londing_eeprom_data(void)
 {
     eeconfig_read_user_datablock(&user_config, 0, sizeof(user_config));
@@ -650,10 +634,7 @@ void keyboard_post_init_kb(void)
     keyboard_post_init_user();
 }
 
-// Per-key indicator overlays. These write directly to the LED driver at
-// full brightness (255) so they stay visible regardless of the current
-// RGB matrix brightness setting. All use rgb_matrix_set_color() which
-// bypasses the brightness scaler.
+// Per-key indicator overlays (full brightness, bypasses RGB scaler).
 bool rgb_matrix_indicators_kb(void)
 {
     if (!rgb_matrix_indicators_user()) {
@@ -663,15 +644,14 @@ bool rgb_matrix_indicators_kb(void)
     extern bool jiggler_active;
     extern bool boot_hold_active;
 
-    // Win/Cmd lock → green on the GUI key (col differs by OS mode).
+    // Win/Cmd lock → green on GUI key.
     if (keymap_config.no_gui) {
         uint8_t col = (dev_info.sys_sw_state == SYS_SW_MAC) ? 2 : 1;
         uint8_t led = g_led_config.matrix_co[5][col];
         if (led != NO_LED) rgb_matrix_set_color(led, 0, 255, 0);
     }
 
-    // Caps Lock → cyan on KC_CAPS (row 3, col 0). Matches the side-strip
-    // cyan indicator in side.c so both cues share one colour.
+    // Caps Lock → cyan on KC_CAPS (matches side-strip colour).
     bool caps_on = (dev_info.link_mode == LINK_USB)
         ? host_keyboard_led_state().caps_lock
         : (dev_info.rf_led & 0x02);
@@ -680,14 +660,13 @@ bool rgb_matrix_indicators_kb(void)
         if (led != NO_LED) rgb_matrix_set_color(led, 0, 255, 255);
     }
 
-    // Mouse jiggler → bright pink on LCTL (row 5, col 0).
+    // Mouse jiggler → pink on LCTL.
     if (jiggler_active) {
         uint8_t led = g_led_config.matrix_co[5][0];
         if (led != NO_LED) rgb_matrix_set_color(led, 255, 0, 128);
     }
 
-    // BOOT_HOLD → blink Esc red at ~3 Hz while Fn+Esc is held.
-    // Gives a clear visual countdown before DFU entry on release.
+    // BOOT_HOLD → blink Esc red at ~3 Hz while held.
     if (boot_hold_active) {
         uint8_t led = g_led_config.matrix_co[0][0];
         if (led != NO_LED) {
@@ -748,12 +727,7 @@ static void jiggler_task(void) {
     jiggler_step = (jiggler_step + 1) & 0x07;
 }
 
-// Drives the auto-sleep state machine. On USB, sleeps after 1s of USB
-// suspend. On RF, sleeps after SLEEP_TIME_DELAY of no key activity,
-// or immediately if the RF link goes idle/disconnected. On wakeup,
-// re-runs the RF handshake and clears held keys.
-// Moved here from the old sleep.c so all keyboard-level tasks live in
-// one file.
+// Auto-sleep / wake state machine (USB suspend, RF inactivity).
 void Sleep_Handle(void) {
     static uint32_t delay_step_timer = 0;
     static uint8_t  usb_suspend_debounce;

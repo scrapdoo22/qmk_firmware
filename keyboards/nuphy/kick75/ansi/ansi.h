@@ -27,14 +27,10 @@ enum custom_keycodes {
     SIDE_SPI,
     SIDE_SPD,
 
-    // Scaffolded feature: toggles a "mouse jiggler" that nudges the
-    // cursor +/-2 pixels every 60s to keep the host awake. Not placed
-    // in the default keymap — assign it in VIA when you want to use it.
     MOUSE_JIGGLE,
 };
 
 
-// UART receive state machine. Stored in usart_mgr_t.RXDState.
 typedef enum {
     RX_IDLE,
     RX_RECEIVING,
@@ -43,9 +39,6 @@ typedef enum {
     RX_SUM_ERR,
 } uart_rx_state_t;
 
-// Return codes for uart_send_cmd. Kept as #defines (not an enum)
-// because the function returns uint8_t and no caller currently
-// inspects the result.
 #define TX_OK      0xE0
 #define TX_TIMEOUT 0xE3
 
@@ -135,6 +128,5 @@ typedef struct
     uint8_t retain2;
 } user_config_t;
 
-// Schedules a deferred write of user_config to EEPROM. Coalesces
-// rapid calls into one flash write (see ansi.c for the mechanism).
 void user_config_schedule_save(void);
+void side_flash_trigger(uint8_t r, uint8_t g, uint8_t b);

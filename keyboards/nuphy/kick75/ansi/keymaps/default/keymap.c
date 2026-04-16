@@ -1,15 +1,30 @@
 #include QMK_KEYBOARD_H
 
+extern dev_info_t dev_info;
+
 enum keymap_keycodes {
-    BOOT_HOLD = QK_USER_0,  // Hold Fn+Esc 2s → enter DFU bootloader
+    BOOT_HOLD = QK_USER_0,
+    ENC_TAB_FWD,   // Fn+encoder CW  → Alt/Cmd-Tab forward
+    ENC_TAB_REV,   // Fn+encoder CCW → Alt/Cmd-Shift-Tab backward
 };
 
-#define BOOT_HOLD_MS 2000
+#define BOOT_HOLD_MS    1660  // ~5 red blinks at 3 Hz
+#define ALT_TAB_TIMEOUT 1000  // ms before auto-selecting the window
 
-// Exposed to ansi.c so rgb_matrix_indicators_kb() can flash the
-// Esc key red while the hold is in progress.
+// Shared with ansi.c for the red Esc blink indicator.
 bool            boot_hold_active = false;
 static uint16_t boot_hold_timer  = 0;
+
+// Alt-Tab window switcher state. While active, the modifier key
+// (Cmd on Mac, Alt on Win) stays registered. Each encoder detent
+// taps Tab (or Shift-Tab). After ALT_TAB_TIMEOUT of no rotation,
+// the modifier is released and the highlighted window is selected.
+static bool     alt_tab_active = false;
+static uint32_t alt_tab_timer  = 0;
+
+static uint8_t alt_tab_mod(void) {
+    return (dev_info.sys_sw_state == SYS_SW_MAC) ? KC_LGUI : KC_LALT;
+}
 
 bool process_record_user(uint16_t keycode, keyrecord_t *record) {
     if (keycode == BOOT_HOLD) {
@@ -24,7 +39,25 @@ bool process_record_user(uint16_t keycode, keyrecord_t *record) {
         }
         return false;
     }
+    if ((keycode == ENC_TAB_FWD || keycode == ENC_TAB_REV) && record->event.pressed) {
+        if (!alt_tab_active) {
+            alt_tab_active = true;
+            register_code(alt_tab_mod());
+        }
+        if (keycode == ENC_TAB_REV) register_code(KC_LSFT);
+        tap_code(KC_TAB);
+        if (keycode == ENC_TAB_REV) unregister_code(KC_LSFT);
+        alt_tab_timer = timer_read32();
+        return false;
+    }
     return true;
+}
+
+void housekeeping_task_user(void) {
+    if (alt_tab_active && timer_elapsed32(alt_tab_timer) > ALT_TAB_TIMEOUT) {
+        unregister_code(alt_tab_mod());
+        alt_tab_active = false;
+    }
 }
 
 const uint16_t PROGMEM keymaps[][MATRIX_ROWS][MATRIX_COLS] = {
@@ -98,9 +131,9 @@ const uint16_t PROGMEM keymaps[][MATRIX_ROWS][MATRIX_COLS] = {
 #if defined(ENCODER_MAP_ENABLE)
 const uint16_t PROGMEM encoder_map[][NUM_ENCODERS][NUM_DIRECTIONS] = {
     [0] = { ENCODER_CCW_CW(KC_VOLD, KC_VOLU) },
-    [1] = { ENCODER_CCW_CW(KC_VOLD, KC_VOLU) },
+    [1] = { ENCODER_CCW_CW(ENC_TAB_REV, ENC_TAB_FWD) },  // Fn: window switch
     [2] = { ENCODER_CCW_CW(KC_VOLD, KC_VOLU) },
-    [3] = { ENCODER_CCW_CW(KC_VOLD, KC_VOLU) },
+    [3] = { ENCODER_CCW_CW(ENC_TAB_REV, ENC_TAB_FWD) },  // Fn: window switch
     [4] = { ENCODER_CCW_CW(KC_VOLD, KC_VOLU) },
     [5] = { ENCODER_CCW_CW(KC_VOLD, KC_VOLU) },
     [6] = { ENCODER_CCW_CW(KC_VOLD, KC_VOLU) },

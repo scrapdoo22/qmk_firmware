@@ -19,7 +19,7 @@
 #define BREATHE_TAB_LEN     128
 #define FLOW_COLOUR_TAB_LEN 224
 
-// Brightness curve for the breath effect: ramps 0->255->0 over 128 ticks.
+// Breath effect brightness curve (0→255→0 over 128 ticks).
 static const uint8_t breathe_data_tab[BREATHE_TAB_LEN] = {
     0,   1,   2,   3,   4,   5,   6,   7,
     8,   9,   10,  12,  14,  16,  18,  20,
@@ -39,10 +39,7 @@ static const uint8_t breathe_data_tab[BREATHE_TAB_LEN] = {
     7,   6,   5,   4,   3,   2,   1,   0,
 };
 
-// Brightness curve for the wave effect: quick ramp up, slow fall.
-// Note: the '76' near offset 27 looks like a typo in the original data
-// (would expect '67' between '65' and '69'); left as-is to match
-// upstream NuPhy behavior.
+// Wave effect brightness curve (quick ramp, slow fall).
 static const uint8_t wave_data_tab[WAVE_TAB_LEN] = {
     22,  23,  24,  25,  27,  28,  30,  31,
     33,  34,  36,  37,  39,  40,  42,  43,
@@ -121,8 +118,7 @@ static const uint8_t flow_rainbow_colour_tab[FLOW_COLOUR_TAB_LEN][3] = {
     {255, 8,   8  }, {255, 8,   8  }, {255, 8,   8  }, {255, 8,   8  },
 };
 
-// Fixed palette for Solid / Breath side-light modes. Index selected
-// by SIDE_COLOR keycode.
+// Side-light colour palette (index set by SIDE_HUI keycode).
 static const uint8_t colour_lib[9][3] = {
     {0xff, 0x00, 0x00}, // red
     {0xff, 0x40, 0x00}, // orange
@@ -285,78 +281,75 @@ void set_left_rgb(uint8_t r, uint8_t g, uint8_t b)
         rgb_matrix_set_color(SIDE_INDEX + i, r, g, b);
 }
 
-// Briefly flashes the left side strip (~3s) white for Mac, blue for
-// Win whenever the OS mode switch is toggled.
+// Generic side-strip 3-blink feedback. Call side_flash_trigger() from
+// anywhere to flash the left strip in the given colour 3 times (~3s).
+// Replaces the old per-feature flash functions with one reusable path.
+static struct {
+    uint8_t  r, g, b;
+    uint32_t timer;
+    bool     active;
+} side_flash;
+
+void side_flash_trigger(uint8_t r, uint8_t g, uint8_t b) {
+    side_flash.r      = r;
+    side_flash.g      = g;
+    side_flash.b      = b;
+    side_flash.timer  = timer_read32();
+    side_flash.active = true;
+}
+
+static void side_flash_show(void) {
+    // Continuous red overlay while BOOT_HOLD is active, synced with
+    // the Esc key blink rate (~3 Hz / 166ms half-period).
+    extern bool boot_hold_active;
+    if (boot_hold_active) {
+        if ((timer_read() / 166) % 2) {
+            set_left_rgb(SIDE_BLINK_LIGHT, 0, 0);
+        } else {
+            set_left_rgb(0, 0, 0);
+        }
+        return;  // boot-hold takes priority over toggle flashes
+    }
+
+    // One-shot 3-blink triggered by toggles (win-lock, jiggler, etc.).
+    if (!side_flash.active) return;
+    if ((timer_elapsed32(side_flash.timer) / 500) % 2 == 0) {
+        set_left_rgb(side_flash.r, side_flash.g, side_flash.b);
+    } else {
+        set_left_rgb(0, 0, 0);
+    }
+    if (timer_elapsed32(side_flash.timer) >= 3000) {
+        side_flash.active = false;
+    }
+}
+
+// OS mode switch feedback — white for Mac, blue for Win.
 void sys_sw_led_show(void)
 {
-    static uint32_t sys_show_timer = 0;
-    static bool sys_show_flag      = false;
     extern bool f_sys_show;
-
     if (f_sys_show) {
-        f_sys_show     = false;
-        sys_show_timer = timer_read32();
-        sys_show_flag  = true;
-    }
-
-    if (sys_show_flag) {
-        if (dev_info.sys_sw_state == SYS_SW_MAC) {
-            r_temp = SIDE_BLINK_LIGHT;
-            g_temp = SIDE_BLINK_LIGHT;
-            b_temp = SIDE_BLINK_LIGHT;
-        } else {
-            r_temp = 0x00;
-            g_temp = 0x00;
-            b_temp = SIDE_BLINK_LIGHT;
-        }
-        if ((timer_elapsed32(sys_show_timer) / 500) % 2 == 0) {
-            set_left_rgb(r_temp, g_temp, b_temp);
-        } else {
-            set_left_rgb(0x00, 0x00, 0x00);
-        }
-        if (timer_elapsed32(sys_show_timer) >= 3000) {
-            sys_show_flag = false;
-        }
+        f_sys_show = false;
+        if (dev_info.sys_sw_state == SYS_SW_MAC)
+            side_flash_trigger(SIDE_BLINK_LIGHT, SIDE_BLINK_LIGHT, SIDE_BLINK_LIGHT);
+        else
+            side_flash_trigger(0, 0, SIDE_BLINK_LIGHT);
     }
 }
 
-// Briefly flashes the left side strip (~3s) green when auto-sleep is
-// enabled, red when disabled, as feedback for the SLEEP_MODE keycode.
+// Sleep toggle feedback — green for enabled, red for disabled.
 void sleep_sw_led_show(void)
 {
-    static uint32_t sleep_show_timer = 0;
-    static bool sleep_show_flag      = false;
     extern bool f_sleep_show;
-
     if (f_sleep_show) {
-        f_sleep_show     = false;
-        sleep_show_timer = timer_read32();
-        sleep_show_flag  = true;
-    }
-
-    if (sleep_show_flag) {
-        if (user_config.sleep_enable) {
-            r_temp = 0x00;
-            g_temp = SIDE_BLINK_LIGHT;
-            b_temp = 0x00;
-        } else {
-            r_temp = SIDE_BLINK_LIGHT;
-            g_temp = 0x00;
-            b_temp = 0x00;
-        }
-        if ((timer_elapsed32(sleep_show_timer) / 500) % 2 == 0) {
-            set_left_rgb(r_temp, g_temp, b_temp);
-        } else {
-            set_left_rgb(0x00, 0x00, 0x00);
-        }
-        if (timer_elapsed32(sleep_show_timer) >= 3000) {
-            sleep_show_flag = false;
-        }
+        f_sleep_show = false;
+        if (user_config.sleep_enable)
+            side_flash_trigger(0, SIDE_BLINK_LIGHT, 0);
+        else
+            side_flash_trigger(SIDE_BLINK_LIGHT, 0, 0);
     }
 }
 
-// Lights the left side strip cyan when caps lock is on (USB) or the
-// RF link reports caps lock on (RF mode).
+// Caps Lock → cyan on side strip.
 void sys_led_show(void)
 {
     if (dev_info.link_mode == LINK_USB) {
@@ -784,5 +777,6 @@ void m_side_led_show(void)
     sys_led_show();
     sys_sw_led_show();
     sleep_sw_led_show();
+    side_flash_show();
     rf_led_show();
 }
