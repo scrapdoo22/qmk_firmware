@@ -650,62 +650,56 @@ void keyboard_post_init_kb(void)
     keyboard_post_init_user();
 }
 
+// Per-key indicator overlays. These write directly to the LED driver at
+// full brightness (255) so they stay visible regardless of the current
+// RGB matrix brightness setting. All use rgb_matrix_set_color() which
+// bypasses the brightness scaler.
 bool rgb_matrix_indicators_kb(void)
 {
-    if(!rgb_matrix_indicators_user()){
+    if (!rgb_matrix_indicators_user()) {
         return false;
     }
 
-    // Light up the GUI key green when Win/Cmd lock is active.
-    // The GUI key is at a different matrix position depending on OS mode:
-    //   Win layer: row 5, col 1 (KC_LWIN)
-    //   Mac layer: row 5, col 2 (KC_LCMD)
+    extern bool jiggler_active;
+    extern bool boot_hold_active;
+
+    // Win/Cmd lock → green on the GUI key (col differs by OS mode).
     if (keymap_config.no_gui) {
-        uint8_t row = 5;
         uint8_t col = (dev_info.sys_sw_state == SYS_SW_MAC) ? 2 : 1;
-        uint8_t led_index = g_led_config.matrix_co[row][col];
-        if (led_index != NO_LED) {
-            rgb_matrix_set_color(led_index, 0, 255, 0);
-        }
+        uint8_t led = g_led_config.matrix_co[5][col];
+        if (led != NO_LED) rgb_matrix_set_color(led, 0, 255, 0);
     }
 
-    // Light the Caps Lock key cyan when caps lock is active. Matches the
-    // cyan side-light indicator from side.c's sys_led_show() so both
-    // visual cues share one color scheme. In USB mode the state comes
-    // from host_keyboard_led_state(); in RF mode the RF link reports it
-    // in dev_info.rf_led bit 1 (HID LED bit for caps lock).
+    // Caps Lock → cyan on KC_CAPS (row 3, col 0). Matches the side-strip
+    // cyan indicator in side.c so both cues share one colour.
     bool caps_on = (dev_info.link_mode == LINK_USB)
         ? host_keyboard_led_state().caps_lock
         : (dev_info.rf_led & 0x02);
     if (caps_on) {
-        // KC_CAPS sits at row 3, col 0 in both the Win and Mac keymaps
-        // (row 2 is the Tab row — don't confuse the two).
-        // Use full-brightness cyan (255) so the indicator stays visible
-        // even when the matrix base brightness is set low.
-        uint8_t caps_led = g_led_config.matrix_co[3][0];
-        if (caps_led != NO_LED) {
-            rgb_matrix_set_color(caps_led, 0, 255, 255);
-        }
+        uint8_t led = g_led_config.matrix_co[3][0];
+        if (led != NO_LED) rgb_matrix_set_color(led, 0, 255, 255);
     }
 
-    // Light the bottom-left control key bright pink when the mouse
-    // jiggler is active. LCTL lives at row 5, col 0 on both Win and
-    // Mac keymaps — same physical key that toggles the jiggler via
-    // Fn+LCTL — so the indicator sits right on the toggle key.
-    extern bool jiggler_active;
+    // Mouse jiggler → bright pink on LCTL (row 5, col 0).
     if (jiggler_active) {
-        uint8_t lctl_led = g_led_config.matrix_co[5][0];
-        if (lctl_led != NO_LED) {
-            rgb_matrix_set_color(lctl_led, 255, 0, 128);  // bright pink
+        uint8_t led = g_led_config.matrix_co[5][0];
+        if (led != NO_LED) rgb_matrix_set_color(led, 255, 0, 128);
+    }
+
+    // BOOT_HOLD → blink Esc red at ~3 Hz while Fn+Esc is held.
+    // Gives a clear visual countdown before DFU entry on release.
+    if (boot_hold_active) {
+        uint8_t led = g_led_config.matrix_co[0][0];
+        if (led != NO_LED) {
+            bool on = (timer_read() / 166) % 2;
+            rgb_matrix_set_color(led, on ? 255 : 0, 0, 0);
         }
     }
 
     return true;
 }
 
-// Deferred EEPROM save. Flushes user_config ~500ms after the last
-// schedule call, so rapid side-light / sleep key presses coalesce into
-// one flash write instead of blocking the main loop on every press.
+// Deferred EEPROM save — coalesces rapid config changes into one write.
 #define USER_CONFIG_SAVE_DELAY_MS 500
 
 static bool     user_config_dirty      = false;
@@ -723,21 +717,14 @@ static void user_config_maybe_save(void) {
     }
 }
 
-// Mouse jiggler. Toggled on/off by the MOUSE_JIGGLE custom keycode.
-// When active, walks the cursor through a cross pattern:
-//   up → return → right → return → down → return → left → return → ...
-// Each step is JIGGLER_NUDGE_PX pixels, fired every JIGGLER_INTERVAL_MS.
-// Every step cancels the previous one, so over a full 8-step cycle the
-// cursor always comes back to its starting position — no long-term
-// drift. The pattern is intentionally obnoxious rather than subtle:
-// jiggler use implies you're stepping away, so being noticeable is a
-// feature (so you never forget it's on and wonder why your mouse
-// behaves oddly).
+// Mouse jiggler — cross pattern (up/right/down/left), each followed by
+// a return step so the cursor always drifts back to the origin over one
+// full 8-step cycle. Intentionally noticeable so you can't forget it's on.
 #define JIGGLER_INTERVAL_MS 2000
 #define JIGGLER_NUDGE_PX    80
 
 bool            jiggler_active    = false;
-uint8_t         jiggler_step      = 0;  // 0..7, cycles through cross
+uint8_t         jiggler_step      = 0;
 static uint32_t jiggler_last_time = 0;
 
 static void jiggler_task(void) {
@@ -745,26 +732,20 @@ static void jiggler_task(void) {
     if (timer_elapsed32(jiggler_last_time) < JIGGLER_INTERVAL_MS) return;
     jiggler_last_time = timer_read32();
 
-    // Cross pattern: each "out" step is followed by a "return" step
-    // that cancels it, so the cursor averages to the origin.
-    //   0: up         1: return (down)
-    //   2: right      3: return (left)
-    //   4: down       5: return (up)
-    //   6: left       7: return (right)
+    // Even steps = outward move, odd steps = matching return.
     report_mouse_t r = {0};
     switch (jiggler_step) {
         case 0: r.y = -JIGGLER_NUDGE_PX; break;  // up
-        case 1: r.y =  JIGGLER_NUDGE_PX; break;  // back down to origin
+        case 1: r.y =  JIGGLER_NUDGE_PX; break;  // return
         case 2: r.x =  JIGGLER_NUDGE_PX; break;  // right
-        case 3: r.x = -JIGGLER_NUDGE_PX; break;  // back left to origin
+        case 3: r.x = -JIGGLER_NUDGE_PX; break;  // return
         case 4: r.y =  JIGGLER_NUDGE_PX; break;  // down
-        case 5: r.y = -JIGGLER_NUDGE_PX; break;  // back up to origin
+        case 5: r.y = -JIGGLER_NUDGE_PX; break;  // return
         case 6: r.x = -JIGGLER_NUDGE_PX; break;  // left
-        case 7: r.x =  JIGGLER_NUDGE_PX; break;  // back right to origin
+        case 7: r.x =  JIGGLER_NUDGE_PX; break;  // return
     }
     host_mouse_send(&r);
-
-    jiggler_step = (jiggler_step + 1) & 0x07;  // wrap 0..7
+    jiggler_step = (jiggler_step + 1) & 0x07;
 }
 
 // Drives the auto-sleep state machine. On USB, sleeps after 1s of USB
