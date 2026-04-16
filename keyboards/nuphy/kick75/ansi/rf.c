@@ -1,3 +1,6 @@
+// Copyright 2023 Persama (@Persama)
+// SPDX-License-Identifier: GPL-2.0-or-later
+
 #include "ansi.h"
 #include "uart.h"  // qmk uart.h
 
