@@ -9,7 +9,7 @@ enum keymap_keycodes {
 };
 
 #define BOOT_HOLD_MS    1660  // ~5 red blinks at 3 Hz
-#define ALT_TAB_TIMEOUT 1000  // ms before auto-selecting the window
+#define ALT_TAB_TIMEOUT 750   // ms before auto-selecting the window
 
 // Shared with ansi.c for the red Esc blink indicator.
 bool            boot_hold_active = false;
