@@ -312,14 +312,17 @@ static void side_flash_show(void) {
     }
 
     // One-shot 3-blink triggered by toggles (win-lock, jiggler, etc.).
+    // Pattern: ON 500ms, OFF 500ms × 3 = 3000ms total.  Timeout is
+    // checked first so we never draw a partial 4th flash.
     if (!side_flash.active) return;
+    if (timer_elapsed32(side_flash.timer) >= 3000) {
+        side_flash.active = false;
+        return;
+    }
     if ((timer_elapsed32(side_flash.timer) / 500) % 2 == 0) {
         set_left_rgb(side_flash.r, side_flash.g, side_flash.b);
     } else {
         set_left_rgb(0, 0, 0);
-    }
-    if (timer_elapsed32(side_flash.timer) >= 3000) {
-        side_flash.active = false;
     }
 }
 
